@@ -685,5 +685,90 @@
             }
         }
     </script>
+    <script type="module">
+  // Importe todos os serviços do Firebase que você vai utilizar
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+  import { 
+    getAuth,
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    signOut
+  } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+  
+  import { 
+    getDatabase,
+    ref,
+    set,
+    get,
+    update,
+    remove
+  } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+  
+  import { 
+    getStorage,
+    ref as storageRef,
+    uploadBytes,
+    getDownloadURL
+  } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
+  
+  import { 
+    getFirestore,
+    collection,
+    doc,
+    setDoc,
+    getDoc,
+    updateDoc,
+    deleteDoc
+  } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+  // Sua configuração do Firebase (mesma que você já tem)
+  const firebaseConfig = {
+    apiKey: "AIzaSyAURVJf9GMA0qbCeae81YE8QT3hF9zFMik",
+    authDomain: "controlefrete-1ab55.firebaseapp.com",
+    databaseURL: "https://controlefrete-1ab55-default-rtdb.firebaseio.com",
+    projectId: "controlefrete-1ab55",
+    storageBucket: "controlefrete-1ab55.firebasestorage.app",
+    messagingSenderId: "470904117791",
+    appId: "1:470904117791:web:63fad62f72fb31ab47d32a"
+  };
+
+  // Inicialize o Firebase
+  const app = initializeApp(firebaseConfig);
+  
+  // Inicialize os serviços
+  const auth = getAuth(app);
+  const database = getDatabase(app);       // Realtime Database
+  const firestore = getFirestore(app);    // Firestore
+  const storage = getStorage(app);        // Cloud Storage
+  
+  // Exporte os serviços para uso em outros arquivos
+  window.firebase = {
+    auth,
+    database,
+    firestore,
+    storage,
+    // Métodos de autenticação
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    signOut,
+    // Métodos do Realtime Database
+    dbRef: ref,
+    dbSet: set,
+    dbGet: get,
+    dbUpdate: update,
+    dbRemove: remove,
+    // Métodos do Firestore
+    fsCollection: collection,
+    fsDoc: doc,
+    fsSetDoc: setDoc,
+    fsGetDoc: getDoc,
+    fsUpdateDoc: updateDoc,
+    fsDeleteDoc: deleteDoc,
+    // Métodos do Storage
+    stRef: storageRef,
+    stUpload: uploadBytes,
+    stDownloadURL: getDownloadURL
+  };
+</script>
 </body>
 </html>
