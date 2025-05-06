@@ -170,6 +170,37 @@
             color: #0369a1;
             margin-left: 8px;
         }
+        #loginModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .login-box {
+            background: white;
+            width: 300px;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        }
+        .login-box h2 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .login-box input {
+            margin-bottom: 10px;
+        }
+        #loginError {
+            color: #e74c3c;
+            font-size: 12px;
+            margin-top: 5px;
+        }
         @media (max-width: 1200px) {
             .city-state-column {
                 min-width: 150px;
@@ -195,6 +226,17 @@
     </style>
 </head>
 <body>
+    <!-- Modal de Login -->
+    <div id="loginModal">
+        <div class="login-box">
+            <h2>Login</h2>
+            <input type="email" id="loginEmail" placeholder="Email">
+            <input type="password" id="loginPassword" placeholder="Senha">
+            <button onclick="login()" style="width:100%;">Entrar</button>
+            <p id="loginError"></p>
+        </div>
+    </div>
+
     <div class="container">
         <h1>Controle de Fretes - Transporte</h1>
         
@@ -230,6 +272,7 @@
                 <button id="addRowBtn">➕ Adicionar Linha</button>
                 <button id="saveBtn">💾 Salvar Dados</button>
                 <button id="exportBtn">📤 Exportar Excel</button>
+                <button id="logoutBtn" class="delete-btn" style="margin-left:10px;">🚪 Sair</button>
             </div>
         </div>
         
@@ -262,7 +305,38 @@
         <div id="message"></div>
     </div>
 
-    <script>
+    <script type="module">
+        // Importe os serviços do Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { 
+            getAuth,
+            signInWithEmailAndPassword,
+            signOut,
+            onAuthStateChanged
+        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { 
+            getDatabase,
+            ref,
+            set,
+            get
+        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyAURVJf9GMA0qbCeae81YE8QT3hF9zFMik",
+            authDomain: "controlefrete-1ab55.firebaseapp.com",
+            databaseURL: "https://controlefrete-1ab55-default-rtdb.firebaseio.com",
+            projectId: "controlefrete-1ab55",
+            storageBucket: "controlefrete-1ab55.appspot.com",
+            messagingSenderId: "470904117791",
+            appId: "1:470904117791:web:63fad62f72fb31ab47d32a"
+        };
+
+        // Inicialize o Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const database = getDatabase(app);
+
         // Variáveis globais
         let estados = [];
         let cidadesCache = {};
@@ -279,7 +353,23 @@
             document.getElementById('saveBtn').addEventListener('click', saveData);
             document.getElementById('loadBtn').addEventListener('click', loadData);
             document.getElementById('exportBtn').addEventListener('click', exportToExcel);
+            document.getElementById('logoutBtn').addEventListener('click', logout);
             
+            // Verifica autenticação
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    // Usuário logado
+                    document.getElementById('loginModal').style.display = 'none';
+                    initApp();
+                } else {
+                    // Usuário não logado
+                    document.getElementById('loginModal').style.display = 'flex';
+                }
+            });
+        });
+
+        // Função para inicializar o aplicativo após login
+        async function initApp() {
             try {
                 // Carrega estados do IBGE
                 await loadStates();
@@ -293,7 +383,35 @@
                 console.error("Erro na inicialização:", error);
                 showMessage("Erro ao carregar dados iniciais", "error");
             }
-        });
+        }
+        
+        // Função de login
+        async function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const errorElement = document.getElementById('loginError');
+            
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                document.getElementById('loginModal').style.display = 'none';
+                showMessage('Login realizado com sucesso!', 'success');
+            } catch (error) {
+                console.error("Erro no login:", error);
+                errorElement.textContent = error.message;
+            }
+        }
+        
+        // Função de logout
+        async function logout() {
+            try {
+                await signOut(auth);
+                document.getElementById('loginModal').style.display = 'flex';
+                showMessage('Você saiu do sistema', 'success');
+            } catch (error) {
+                console.error("Erro no logout:", error);
+                showMessage('Erro ao sair: ' + error.message, 'error');
+            }
+        }
         
         // Carrega estados do IBGE
         async function loadStates() {
@@ -528,65 +646,82 @@
             }
         }
         
-        // Salva os dados no localStorage
-        function saveData() {
+        // Salva os dados no Firebase
+        async function saveData() {
             try {
+                // Verifica se o usuário está autenticado
+                const user = auth.currentUser;
+                if (!user) {
+                    showMessage("Você precisa estar logado para salvar dados", "error");
+                    document.getElementById('loginModal').style.display = 'flex';
+                    return;
+                }
+                
                 const month = document.getElementById('month').value;
                 const year = document.getElementById('year').value;
-                const period = `${month}/${year}`;
+                const period = `${month}_${year}`;
                 
                 const rows = document.querySelectorAll('#dataTable tbody tr');
                 const data = [];
                 
                 rows.forEach(row => {
-                    const origin = row.querySelector('.origin-input').value || '';
-                    const destination = row.querySelector('.destination-input').value || '';
-                    
                     data.push({
-                        employee: row.querySelector('.employee').value,
-                        emissionDate: row.querySelector('.emission-date').value,
-                        cteFatura: row.querySelector('.cte-fatura').value,
-                        contractor: row.querySelector('.contractor').value,
-                        companyFreight: row.querySelector('.company-freight').value,
-                        driverFreight: row.querySelector('.driver-freight').value,
-                        dueDate: row.querySelector('.due-date').value,
-                        origin: origin,
-                        destination: destination,
-                        vehicle: row.querySelector('.vehicle').value,
-                        exclusivity: row.querySelector('.exclusivity').value,
-                        axdRodovar: row.querySelector('.axd-rodovar').value,
-                        obs: row.querySelector('.obs').value
+                        employee: row.querySelector('.employee').value || '',
+                        emissionDate: row.querySelector('.emission-date').value || '',
+                        cteFatura: row.querySelector('.cte-fatura').value || '',
+                        contractor: row.querySelector('.contractor').value || '',
+                        companyFreight: row.querySelector('.company-freight').value || '',
+                        driverFreight: row.querySelector('.driver-freight').value || '',
+                        dueDate: row.querySelector('.due-date').value || '',
+                        origin: row.querySelector('.origin-input').value || '',
+                        destination: row.querySelector('.destination-input').value || '',
+                        vehicle: row.querySelector('.vehicle').value || '',
+                        exclusivity: row.querySelector('.exclusivity').value || 'Não',
+                        axdRodovar: row.querySelector('.axd-rodovar').value || 'AXD',
+                        obs: row.querySelector('.obs').value || ''
                     });
                 });
+
+                // Salva no Firebase Realtime Database
+                const dbRef = ref(database, `fretes/${period}`);
+                await set(dbRef, data);
                 
-                localStorage.setItem(`freight_control_${period}`, JSON.stringify(data));
-                showMessage(`Dados salvos com sucesso para ${period}!`, 'success');
+                showMessage(`Dados salvos com sucesso no Firebase para ${month}/${year}!`, 'success');
             } catch (error) {
-                console.error("Erro ao salvar dados:", error);
-                showMessage("Erro ao salvar dados", "error");
+                console.error("Erro ao salvar dados no Firebase:", error);
+                showMessage("Erro ao salvar dados: " + error.message, "error");
             }
         }
         
-        // Carrega dados salvos anteriormente
-        function loadData() {
+        // Carrega dados do Firebase
+        async function loadData() {
             try {
+                // Verifica se o usuário está autenticado
+                const user = auth.currentUser;
+                if (!user) {
+                    showMessage("Você precisa estar logado para carregar dados", "error");
+                    document.getElementById('loginModal').style.display = 'flex';
+                    return;
+                }
+                
                 const month = document.getElementById('month').value;
                 const year = document.getElementById('year').value;
-                const period = `${month}/${year}`;
+                const period = `${month}_${year}`;
                 
                 // Limpa a tabela
                 document.querySelector('#dataTable tbody').innerHTML = '';
                 
-                const savedData = localStorage.getItem(`freight_control_${period}`);
+                // Carrega do Firebase
+                const dbRef = ref(database, `fretes/${period}`);
+                const snapshot = await get(dbRef);
                 
-                if (savedData) {
-                    const data = JSON.parse(savedData);
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
                     
                     data.forEach(item => {
                         const newRow = addRow();
                         
                         if (newRow) {
-                            // Preenche os campos básicos
                             newRow.querySelector('.employee').value = item.employee || '';
                             newRow.querySelector('.emission-date').value = item.emissionDate || '';
                             newRow.querySelector('.cte-fatura').value = item.cteFatura || '';
@@ -594,31 +729,25 @@
                             newRow.querySelector('.company-freight').value = item.companyFreight || '';
                             newRow.querySelector('.driver-freight').value = item.driverFreight || '';
                             newRow.querySelector('.due-date').value = item.dueDate || '';
+                            newRow.querySelector('.origin-input').value = item.origin || '';
+                            newRow.querySelector('.destination-input').value = item.destination || '';
                             newRow.querySelector('.vehicle').value = item.vehicle || '';
                             newRow.querySelector('.exclusivity').value = item.exclusivity || 'Não';
                             newRow.querySelector('.axd-rodovar').value = item.axdRodovar || 'AXD';
                             newRow.querySelector('.obs').value = item.obs || '';
-                            
-                            // Preenche origem e destino
-                            if (item.origin) {
-                                newRow.querySelector('.origin-input').value = item.origin;
-                            }
-                            if (item.destination) {
-                                newRow.querySelector('.destination-input').value = item.destination;
-                            }
                         }
                     });
                     
-                    showMessage(`Dados de ${period} carregados com sucesso!`, 'success');
+                    showMessage(`Dados de ${month}/${year} carregados do Firebase!`, 'success');
                 } else {
-                    showMessage(`Nenhum dado encontrado para ${period}.`, 'error');
+                    showMessage(`Nenhum dado encontrado no Firebase para ${month}/${year}.`, 'error');
                     // Adiciona linhas vazias se não houver dados
                     addRow();
                     addRow();
                 }
             } catch (error) {
-                console.error("Erro ao carregar dados:", error);
-                showMessage("Erro ao carregar dados", "error");
+                console.error("Erro ao carregar dados do Firebase:", error);
+                showMessage("Erro ao carregar dados: " + error.message, "error");
             }
         }
         
@@ -684,91 +813,11 @@
                 console.error("Erro ao mostrar mensagem:", error);
             }
         }
+
+        // Torna as funções globais para serem acessíveis no HTML
+        window.searchCities = searchCities;
+        window.deleteRow = deleteRow;
+        window.login = login;
     </script>
-    <script type="module">
-  // Importe todos os serviços do Firebase que você vai utilizar
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-  import { 
-    getAuth,
-    createUserWithEmailAndPassword,
-    signInWithEmailAndPassword,
-    signOut
-  } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-  
-  import { 
-    getDatabase,
-    ref,
-    set,
-    get,
-    update,
-    remove
-  } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
-  
-  import { 
-    getStorage,
-    ref as storageRef,
-    uploadBytes,
-    getDownloadURL
-  } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
-  
-  import { 
-    getFirestore,
-    collection,
-    doc,
-    setDoc,
-    getDoc,
-    updateDoc,
-    deleteDoc
-  } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-  // Sua configuração do Firebase (mesma que você já tem)
-  const firebaseConfig = {
-    apiKey: "AIzaSyAURVJf9GMA0qbCeae81YE8QT3hF9zFMik",
-    authDomain: "controlefrete-1ab55.firebaseapp.com",
-    databaseURL: "https://controlefrete-1ab55-default-rtdb.firebaseio.com",
-    projectId: "controlefrete-1ab55",
-    storageBucket: "controlefrete-1ab55.firebasestorage.app",
-    messagingSenderId: "470904117791",
-    appId: "1:470904117791:web:63fad62f72fb31ab47d32a"
-  };
-
-  // Inicialize o Firebase
-  const app = initializeApp(firebaseConfig);
-  
-  // Inicialize os serviços
-  const auth = getAuth(app);
-  const database = getDatabase(app);       // Realtime Database
-  const firestore = getFirestore(app);    // Firestore
-  const storage = getStorage(app);        // Cloud Storage
-  
-  // Exporte os serviços para uso em outros arquivos
-  window.firebase = {
-    auth,
-    database,
-    firestore,
-    storage,
-    // Métodos de autenticação
-    createUserWithEmailAndPassword,
-    signInWithEmailAndPassword,
-    signOut,
-    // Métodos do Realtime Database
-    dbRef: ref,
-    dbSet: set,
-    dbGet: get,
-    dbUpdate: update,
-    dbRemove: remove,
-    // Métodos do Firestore
-    fsCollection: collection,
-    fsDoc: doc,
-    fsSetDoc: setDoc,
-    fsGetDoc: getDoc,
-    fsUpdateDoc: updateDoc,
-    fsDeleteDoc: deleteDoc,
-    // Métodos do Storage
-    stRef: storageRef,
-    stUpload: uploadBytes,
-    stDownloadURL: getDownloadURL
-  };
-</script>
 </body>
 </html>
