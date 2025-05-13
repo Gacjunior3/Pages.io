@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -400,460 +399,515 @@
         </div>
     </div>
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-storage-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+    <!-- Firebase SDK v8 (Compatível) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
 
     <script>
-        // Configuração do Firebase (substitua com suas credenciais)
-        const firebaseConfig = {
-            apiKey: "SUA_API_KEY",
-            authDomain: "SEU_PROJETO.firebaseapp.com",
-            projectId: "SEU_PROJETO",
-            storageBucket: "SEU_PROJETO.appspot.com",
-            messagingSenderId: "SEU_SENDER_ID",
-            appId: "SEU_APP_ID"
-        };
+    // Configuração do Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyBm0t_SQ1vyq2fW3aFqgKph-NB9BwCq60Y",
+        authDomain: "controle-materiais-v2.firebaseapp.com",
+        projectId: "controle-materiais-v2",
+        storageBucket: "controle-materiais-v2.appspot.com",
+        messagingSenderId: "1059762022447",
+        appId: "1:1059762022447:web:a977debad4cbc9ae313eda"
+    };
 
-        // Inicializar Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        const storage = firebase.storage();
-        const auth = firebase.auth();
+    // Inicializar Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const storage = firebase.storage();
+    const auth = firebase.auth();
 
-        // Elementos da câmera para material
-        const materialVideo = document.getElementById('material-video');
-        const materialCanvas = document.getElementById('material-canvas');
-        const captureMaterialBtn = document.getElementById('capture-material-btn');
-        const uploadMaterialBtn = document.getElementById('upload-material-btn');
-        const materialFileInput = document.getElementById('material-file-input');
-        const materialPhotoPreview = document.getElementById('material-photo-preview');
-        const removeMaterialPhoto = document.getElementById('remove-material-photo');
+    // Elementos DOM
+    const authStatus = document.getElementById('auth-status');
+    const materialForm = document.getElementById('material-form');
+    const materialsTableBody = document.getElementById('materials-table-body');
+    
+    // Variáveis de estado
+    let currentUser = null;
+    let allMaterials = [];
+    let materialStream = null;
+    let noteStream = null;
+    let currentMaterialPhoto = null;
+    let currentNotePhoto = null;
+
+    // 1. Função de Autenticação Anônima (modificada)
+    function authenticateAnonymously() {
+        return new Promise((resolve, reject) => {
+            auth.onAuthStateChanged(user => {
+                if (user) {
+                    // Já está autenticado
+                    resolve(user);
+                } else {
+                    // Realiza autenticação anônima
+                    auth.signInAnonymously()
+                        .then((userCredential) => {
+                            resolve(userCredential.user);
+                        })
+                        .catch(error => {
+                            console.error("Erro na autenticação:", error);
+                            reject(error);
+                        });
+                }
+            });
+        });
+    }
+
+    // 2. Inicialização da Aplicação (modificada)
+    async function initApp() {
+        try {
+            authStatus.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Conectando...';
+            
+            // Autenticação
+            currentUser = await authenticateAnonymously();
+            authStatus.innerHTML = '<i class="fas fa-check-circle"></i> Conectado';
+            console.log("Usuário autenticado:", currentUser.uid);
+            
+            // Inicializa câmeras
+            await initCameras();
+            
+            // Carrega dados
+            await loadMaterials();
+            
+            // Configura eventos
+            setupEventListeners();
+            
+        } catch (error) {
+            console.error("Falha na inicialização:", error);
+            authStatus.innerHTML = '<i class="fas fa-exclamation-circle"></i> Falha na conexão';
+            
+            // Mostra mensagem detalhada para o usuário
+            setTimeout(() => {
+                alert(`Erro ao conectar com o servidor:\n\n${error.message}\n\nPor favor, recarregue a página.`);
+            }, 500);
+        }
+    }
+
+    // 3. Inicialização das Câmeras (com tratamento de erro melhorado)
+    async function initCameras() {
+        try {
+            // Verifica se o navegador suporta mediaDevices
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                throw new Error("Seu navegador não suporta acesso à câmera");
+            }
+            
+            // Configuração da câmera do material
+            materialStream = await navigator.mediaDevices.getUserMedia({ 
+                video: { facingMode: 'environment' } 
+            });
+            document.getElementById('material-video').srcObject = materialStream;
+            
+            // Configuração da câmera da nota
+            noteStream = await navigator.mediaDevices.getUserMedia({ 
+                video: true 
+            });
+            document.getElementById('note-video').srcObject = noteStream;
+            
+        } catch (error) {
+            console.error("Erro ao acessar câmeras:", error);
+            // Esconde os botões de câmera
+            document.getElementById('capture-material-btn').style.display = 'none';
+            document.getElementById('capture-note-btn').style.display = 'none';
+            alert("Acesso à câmera não disponível. Você ainda pode carregar fotos.");
+        }
+    }
+
+    // 4. Carregar Materiais do Firestore (com tratamento de erro melhorado)
+    async function loadMaterials() {
+        try {
+            authStatus.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Carregando dados...';
+            
+            const snapshot = await db.collection('materials')
+                .where('userId', '==', currentUser.uid)
+                .orderBy('date', 'desc')
+                .get();
+            
+            allMaterials = snapshot.docs.map(doc => {
+                const data = doc.data();
+                // Garante que a data seja um objeto Date válido
+                let date;
+                try {
+                    date = data.date?.toDate?.() || new Date(data.date);
+                } catch (e) {
+                    console.warn("Data inválida, usando data atual", e);
+                    date = new Date();
+                }
+                
+                return {
+                    id: doc.id,
+                    ...data,
+                    date: date
+                };
+            });
+            
+            renderMaterialsTable(allMaterials);
+            authStatus.innerHTML = '<i class="fas fa-check-circle"></i> Conectado';
+            
+        } catch (error) {
+            console.error("Erro ao carregar materiais:", error);
+            authStatus.innerHTML = '<i class="fas fa-exclamation-circle"></i> Erro ao carregar';
+            alert("Erro ao carregar os dados. Por favor, recarregue a página.");
+            throw error;
+        }
+    }
+
+    // [Restante do código permanece igual...]
+    // 5. Configurar Event Listeners
+    function setupEventListeners() {
+        // Mostrar/ocultar campo de destino
+        document.getElementById('material-type').addEventListener('change', function() {
+            document.getElementById('location-group').classList.toggle('hidden', this.value !== 'saida');
+        });
         
-        // Elementos da câmera para nota fiscal
-        const noteVideo = document.getElementById('note-video');
-        const noteCanvas = document.getElementById('note-canvas');
-        const captureNoteBtn = document.getElementById('capture-note-btn');
-        const uploadNoteBtn = document.getElementById('upload-note-btn');
-        const noteFileInput = document.getElementById('note-file-input');
-        const notePhotoPreview = document.getElementById('note-photo-preview');
-        const removeNotePhoto = document.getElementById('remove-note-photo');
+        // Foto do material
+        document.getElementById('capture-material-btn').addEventListener('click', () => {
+            capturePhoto(document.getElementById('material-video'), document.getElementById('material-canvas'), photo => {
+                currentMaterialPhoto = photo;
+                document.getElementById('material-photo-preview').src = photo;
+                document.getElementById('material-photo-preview').style.display = 'block';
+                document.getElementById('remove-material-photo').classList.remove('hidden');
+            });
+        });
         
-        // Elementos do formulário
-        const materialForm = document.getElementById('material-form');
-        const materialTypeSelect = document.getElementById('material-type');
-        const locationGroup = document.getElementById('location-group');
-        const materialsTableBody = document.getElementById('materials-table-body');
+        document.getElementById('upload-material-btn').addEventListener('click', () => {
+            document.getElementById('material-file-input').click();
+        });
+        
+        document.getElementById('material-file-input').addEventListener('change', (e) => {
+            handleFileUpload(e, photo => {
+                currentMaterialPhoto = photo;
+                document.getElementById('material-photo-preview').src = photo;
+                document.getElementById('material-photo-preview').style.display = 'block';
+                document.getElementById('remove-material-photo').classList.remove('hidden');
+            });
+        });
+        
+        document.getElementById('remove-material-photo').addEventListener('click', () => {
+            currentMaterialPhoto = null;
+            document.getElementById('material-photo-preview').style.display = 'none';
+            document.getElementById('remove-material-photo').classList.add('hidden');
+            document.getElementById('material-file-input').value = '';
+        });
+        
+        // Foto da nota fiscal
+        document.getElementById('capture-note-btn').addEventListener('click', () => {
+            capturePhoto(document.getElementById('note-video'), document.getElementById('note-canvas'), photo => {
+                currentNotePhoto = photo;
+                document.getElementById('note-photo-preview').src = photo;
+                document.getElementById('note-photo-preview').style.display = 'block';
+                document.getElementById('remove-note-photo').classList.remove('hidden');
+            });
+        });
+        
+        document.getElementById('upload-note-btn').addEventListener('click', () => {
+            document.getElementById('note-file-input').click();
+        });
+        
+        document.getElementById('note-file-input').addEventListener('change', (e) => {
+            handleFileUpload(e, photo => {
+                currentNotePhoto = photo;
+                document.getElementById('note-photo-preview').src = photo;
+                document.getElementById('note-photo-preview').style.display = 'block';
+                document.getElementById('remove-note-photo').classList.remove('hidden');
+            });
+        });
+        
+        document.getElementById('remove-note-photo').addEventListener('click', () => {
+            currentNotePhoto = null;
+            document.getElementById('note-photo-preview').style.display = 'none';
+            document.getElementById('remove-note-photo').classList.add('hidden');
+            document.getElementById('note-file-input').value = '';
+        });
+        
+        // Formulário
+        materialForm.addEventListener('submit', handleFormSubmit);
+        
+        // Filtros
+        document.getElementById('apply-filters').addEventListener('click', applyFilters);
+        document.getElementById('reset-filters').addEventListener('click', resetFilters);
+        document.getElementById('export-btn').addEventListener('click', exportToCSV);
+        
+        // Modal
+        document.querySelector('.close').addEventListener('click', () => {
+            document.getElementById('image-modal').style.display = 'none';
+        });
+        
+        document.getElementById('image-modal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('image-modal')) {
+                document.getElementById('image-modal').style.display = 'none';
+            }
+        });
+        
+        // Parar câmeras ao sair
+        window.addEventListener('beforeunload', stopCameras);
+    }
+
+    // 6. Funções para Manipulação de Fotos
+    function capturePhoto(videoElement, canvasElement, callback) {
+        try {
+            canvasElement.width = videoElement.videoWidth;
+            canvasElement.height = videoElement.videoHeight;
+            const ctx = canvasElement.getContext('2d');
+            ctx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+            callback(canvasElement.toDataURL('image/jpeg', 0.8));
+        } catch (error) {
+            console.error("Erro ao capturar foto:", error);
+            alert("Erro ao capturar foto. Verifique se a câmera está disponível.");
+        }
+    }
+
+    function handleFileUpload(event, callback) {
+        const file = event.target.files[0];
+        if (file && file.type.match('image.*')) {
+            const reader = new FileReader();
+            reader.onload = (e) => callback(e.target.result);
+            reader.readAsDataURL(file);
+        } else {
+            alert("Por favor, selecione um arquivo de imagem válido.");
+        }
+    }
+
+    // 7. Manipulação do Formulário
+    async function handleFormSubmit(e) {
+        e.preventDefault();
+        
         const submitBtn = document.getElementById('submit-btn');
         const submitText = document.getElementById('submit-text');
         const submitLoading = document.getElementById('submit-loading');
         
-        // Elementos de filtro
-        const filterType = document.getElementById('filter-type');
-        const filterMaterial = document.getElementById('filter-material');
-        const filterResponsible = document.getElementById('filter-responsible');
-        const filterLocation = document.getElementById('filter-location');
-        const filterDateStart = document.getElementById('filter-date-start');
-        const filterDateEnd = document.getElementById('filter-date-end');
-        const applyFiltersBtn = document.getElementById('apply-filters');
-        const resetFiltersBtn = document.getElementById('reset-filters');
-        const exportBtn = document.getElementById('export-btn');
-        
-        // Elementos do modal
-        const modal = document.getElementById('image-modal');
-        const modalImg = document.getElementById('modal-image');
-        const closeModalBtn = document.querySelector('.close');
-        
-        // Elementos de autenticação
-        const authStatus = document.getElementById('auth-status');
-        
-        // Variáveis de estado
-        let currentUser = null;
-        let allMaterials = [];
-        let materialStream = null;
-        let noteStream = null;
-        let currentMaterialPhoto = null;
-        let currentNotePhoto = null;
-
-        // Inicializar a aplicação
-        function initApp() {
-            // Configurar autenticação
-            auth.onAuthStateChanged(user => {
-                if (user) {
-                    currentUser = user;
-                    authStatus.innerHTML = `<i class="fas fa-check-circle"></i> Logado como: ${user.email || 'Usuário autenticado'}`;
-                    initCameras();
-                    loadMaterials();
-                } else {
-                    authStatus.innerHTML = '<i class="fas fa-exclamation-circle"></i> Não autenticado';
-                    // Se precisar de autenticação, redirecione para a página de login
-                    // window.location.href = 'login.html';
-                }
-            });
-
-            // Configurar listeners
-            setupEventListeners();
-        }
-
-        // Configurar listeners de eventos
-        function setupEventListeners() {
-            // Mostrar/ocultar campo de destino
-            materialTypeSelect.addEventListener('change', function() {
-                if (this.value === 'saida') {
-                    locationGroup.classList.remove('hidden');
-                    document.getElementById('material-location').required = true;
-                } else {
-                    locationGroup.classList.add('hidden');
-                    document.getElementById('material-location').required = false;
-                }
-            });
-            
-            // Foto do material
-            captureMaterialBtn.addEventListener('click', () => capturePhoto(materialVideo, materialCanvas, photo => {
-                currentMaterialPhoto = photo;
-                materialPhotoPreview.src = currentMaterialPhoto;
-                materialPhotoPreview.style.display = 'block';
-                removeMaterialPhoto.classList.remove('hidden');
-            }));
-            
-            uploadMaterialBtn.addEventListener('click', () => materialFileInput.click());
-            
-            materialFileInput.addEventListener('change', e => handleFileUpload(e, photo => {
-                currentMaterialPhoto = photo;
-                materialPhotoPreview.src = currentMaterialPhoto;
-                materialPhotoPreview.style.display = 'block';
-                removeMaterialPhoto.classList.remove('hidden');
-            }));
-            
-            removeMaterialPhoto.addEventListener('click', () => {
-                currentMaterialPhoto = null;
-                materialPhotoPreview.style.display = 'none';
-                removeMaterialPhoto.classList.add('hidden');
-                materialFileInput.value = '';
-            });
-            
-            // Foto da nota fiscal
-            captureNoteBtn.addEventListener('click', () => capturePhoto(noteVideo, noteCanvas, photo => {
-                currentNotePhoto = photo;
-                notePhotoPreview.src = currentNotePhoto;
-                notePhotoPreview.style.display = 'block';
-                removeNotePhoto.classList.remove('hidden');
-            }));
-            
-            uploadNoteBtn.addEventListener('click', () => noteFileInput.click());
-            
-            noteFileInput.addEventListener('change', e => handleFileUpload(e, photo => {
-                currentNotePhoto = photo;
-                notePhotoPreview.src = currentNotePhoto;
-                notePhotoPreview.style.display = 'block';
-                removeNotePhoto.classList.remove('hidden');
-            }));
-            
-            removeNotePhoto.addEventListener('click', () => {
-                currentNotePhoto = null;
-                notePhotoPreview.style.display = 'none';
-                removeNotePhoto.classList.add('hidden');
-                noteFileInput.value = '';
-            });
-            
-            // Formulário
-            materialForm.addEventListener('submit', handleFormSubmit);
-            
-            // Filtros
-            applyFiltersBtn.addEventListener('click', applyFilters);
-            resetFiltersBtn.addEventListener('click', resetFilters);
-            exportBtn.addEventListener('click', exportToCSV);
-            
-            // Modal
-            closeModalBtn.addEventListener('click', () => modal.style.display = 'none');
-            modal.addEventListener('click', e => {
-                if (e.target === modal) modal.style.display = 'none';
-            });
-            
-            // Parar câmeras ao sair
-            window.addEventListener('beforeunload', stopCameras);
-        }
-
-        // Inicializar câmeras
-        async function initCameras() {
-            try {
-                materialStream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: 'environment' } 
-                });
-                materialVideo.srcObject = materialStream;
-                
-                noteStream = await navigator.mediaDevices.getUserMedia({ 
-                    video: true 
-                });
-                noteVideo.srcObject = noteStream;
-            } catch (error) {
-                console.error("Erro ao acessar câmeras:", error);
-                alert("Não foi possível acessar as câmeras. Você ainda pode carregar fotos.");
-            }
-        }
-
-        // Parar câmeras
-        function stopCameras() {
-            if (materialStream) {
-                materialStream.getTracks().forEach(track => track.stop());
-            }
-            if (noteStream) {
-                noteStream.getTracks().forEach(track => track.stop());
-            }
-        }
-
-        // Capturar foto
-        function capturePhoto(videoElement, canvasElement, callback) {
-            canvasElement.width = videoElement.videoWidth;
-            canvasElement.height = videoElement.videoHeight;
-            canvasElement.getContext('2d').drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
-            
-            const photoData = canvasElement.toDataURL('image/jpeg', 0.8);
-            callback(photoData);
-        }
-
-        // Manipular upload de arquivo
-        function handleFileUpload(event, callback) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => callback(e.target.result);
-                reader.readAsDataURL(file);
-            }
-        }
-
-        // Carregar materiais do Firestore
-        async function loadMaterials() {
-            try {
-                const snapshot = await db.collection('materials')
-                    .where('userId', '==', currentUser.uid)
-                    .orderBy('date', 'desc')
-                    .get();
-                
-                allMaterials = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                renderMaterialsTable(allMaterials);
-            } catch (error) {
-                console.error("Erro ao carregar materiais:", error);
-                alert("Erro ao carregar o histórico. Por favor, recarregue a página.");
-            }
-        }
-
-        // Renderizar tabela de materiais
-        function renderMaterialsTable(materials) {
-            materialsTableBody.innerHTML = '';
-            
-            materials.forEach(material => {
-                const row = document.createElement('tr');
-                
-                const date = material.date.toDate ? material.date.toDate() : new Date(material.date);
-                const dateStr = date.toLocaleString();
-                
-                row.innerHTML = `
-                    <td>${dateStr}</td>
-                    <td>${material.type === 'entrada' ? '📥 Entrada' : '📤 Saída'}</td>
-                    <td>${material.name}</td>
-                    <td>${material.quantity}</td>
-                    <td>${material.location || '-'}</td>
-                    <td>${material.responsible}</td>
-                    <td class="photo-cell">
-                        ${material.materialPhotoURL ? 
-                            `<img src="${material.materialPhotoURL}" alt="Foto do material" data-url="${material.materialPhotoURL}">` : 
-                            'Nenhuma'}
-                    </td>
-                    <td class="photo-cell">
-                        ${material.notePhotoURL ? 
-                            `<img src="${material.notePhotoURL}" alt="Foto da nota" data-url="${material.notePhotoURL}">` : 
-                            'Nenhuma'}
-                    </td>
-                    <td>${material.notes || '-'}</td>
-                `;
-                
-                materialsTableBody.appendChild(row);
-            });
-            
-            // Adicionar eventos para as imagens
-            document.querySelectorAll('.photo-cell img').forEach(img => {
-                img.addEventListener('click', function() {
-                    modalImg.src = this.dataset.url;
-                    modal.style.display = 'block';
-                });
-            });
-        }
-
-        // Manipular envio do formulário
-        async function handleFormSubmit(e) {
-            e.preventDefault();
-            
+        try {
             // Desativar botão e mostrar loading
             submitBtn.disabled = true;
             submitText.textContent = 'Enviando...';
             submitLoading.classList.remove('hidden');
             
+            // Obter dados do formulário
+            const materialType = document.getElementById('material-type').value;
+            const formData = {
+                type: materialType,
+                name: document.getElementById('material-name').value,
+                quantity: Number(document.getElementById('material-quantity').value),
+                location: materialType === 'saida' ? document.getElementById('material-location').value : null,
+                responsible: document.getElementById('material-responsible').value,
+                notes: document.getElementById('material-notes').value,
+                userId: currentUser.uid,
+                date: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            
+            // Upload das fotos se existirem
+            if (currentMaterialPhoto) {
+                formData.materialPhotoURL = await uploadToStorage(currentMaterialPhoto, 'materials');
+            }
+            
+            if (currentNotePhoto) {
+                formData.notePhotoURL = await uploadToStorage(currentNotePhoto, 'notes');
+            }
+            
+            // Salvar no Firestore
+            await db.collection('materials').add(formData);
+            
+            // Recarregar dados e limpar formulário
+            await loadMaterials();
+            resetForm();
+            
+            alert('Movimentação registrada com sucesso!');
+            
+        } catch (error) {
+            console.error("Erro ao registrar movimentação:", error);
+            alert(`Erro ao registrar: ${error.message}`);
+        } finally {
+            // Reativar botão
+            submitBtn.disabled = false;
+            submitText.textContent = 'Registrar Movimentação';
+            submitLoading.classList.add('hidden');
+        }
+    }
+
+    function resetForm() {
+        materialForm.reset();
+        currentMaterialPhoto = null;
+        currentNotePhoto = null;
+        document.getElementById('material-photo-preview').style.display = 'none';
+        document.getElementById('note-photo-preview').style.display = 'none';
+        document.getElementById('remove-material-photo').classList.add('hidden');
+        document.getElementById('remove-note-photo').classList.add('hidden');
+        document.getElementById('material-file-input').value = '';
+        document.getElementById('note-file-input').value = '';
+        document.getElementById('location-group').classList.add('hidden');
+    }
+
+    // 8. Upload para Storage
+    async function uploadToStorage(photoData, folder) {
+        try {
+            // Gerar nome único para o arquivo
+            const timestamp = Date.now();
+            const filename = `photo_${timestamp}.jpg`;
+            const storageRef = storage.ref(`${folder}/${currentUser.uid}/${filename}`);
+            
+            // Converter data URL para blob
+            const response = await fetch(photoData);
+            const blob = await response.blob();
+            
+            // Fazer upload
+            const snapshot = await storageRef.put(blob);
+            
+            // Obter URL de download
+            return await snapshot.ref.getDownloadURL();
+        } catch (error) {
+            console.error("Erro ao fazer upload da imagem:", error);
+            throw new Error("Falha ao enviar a imagem. Tente novamente.");
+        }
+    }
+
+    // 9. Renderização da Tabela
+    function renderMaterialsTable(materials) {
+        materialsTableBody.innerHTML = '';
+        
+        if (materials.length === 0) {
+            materialsTableBody.innerHTML = '<tr><td colspan="9" style="text-align: center;">Nenhuma movimentação encontrada</td></tr>';
+            return;
+        }
+        
+        materials.forEach(material => {
+            const row = document.createElement('tr');
+            
+            // Formata a data
+            let dateStr;
             try {
-                const materialType = materialTypeSelect.value;
-                const materialName = document.getElementById('material-name').value;
-                const materialQuantity = document.getElementById('material-quantity').value;
-                const materialLocation = materialType === 'saida' ? document.getElementById('material-location').value : null;
-                const materialResponsible = document.getElementById('material-responsible').value;
-                const materialNotes = document.getElementById('material-notes').value;
-                
-                // Objeto com os dados do material
-                const materialData = {
-                    type: materialType,
-                    name: materialName,
-                    quantity: Number(materialQuantity),
-                    location: materialLocation,
-                    responsible: materialResponsible,
-                    notes: materialNotes,
-                    userId: currentUser.uid,
-                    date: new Date()
-                };
-                
-                // Upload das fotos se existirem
-                if (currentMaterialPhoto) {
-                    materialData.materialPhotoURL = await uploadToStorage(currentMaterialPhoto, 'materials');
-                }
-                
-                if (currentNotePhoto) {
-                    materialData.notePhotoURL = await uploadToStorage(currentNotePhoto, 'notes');
-                }
-                
-                // Salvar no Firestore
-                await db.collection('materials').add(materialData);
-                
-                // Recarregar dados e limpar formulário
-                await loadMaterials();
-                materialForm.reset();
-                materialPhotoPreview.style.display = 'none';
-                notePhotoPreview.style.display = 'none';
-                currentMaterialPhoto = null;
-                currentNotePhoto = null;
-                removeMaterialPhoto.classList.add('hidden');
-                removeNotePhoto.classList.add('hidden');
-                locationGroup.classList.add('hidden');
-                
-                alert('Movimentação registrada com sucesso!');
-            } catch (error) {
-                console.error("Erro ao registrar movimentação:", error);
-                alert("Ocorreu um erro ao registrar. Por favor, tente novamente.");
-            } finally {
-                // Reativar botão
-                submitBtn.disabled = false;
-                submitText.textContent = 'Registrar Movimentação';
-                submitLoading.classList.add('hidden');
+                dateStr = material.date.toLocaleString('pt-BR');
+            } catch (e) {
+                console.warn("Erro ao formatar data:", e);
+                dateStr = "Data inválida";
             }
-        }
+            
+            row.innerHTML = `
+                <td>${dateStr}</td>
+                <td>${material.type === 'entrada' ? '📥 Entrada' : '📤 Saída'}</td>
+                <td>${material.name}</td>
+                <td>${material.quantity}</td>
+                <td>${material.location || '-'}</td>
+                <td>${material.responsible}</td>
+                <td class="photo-cell">
+                    ${material.materialPhotoURL ? 
+                        `<img src="${material.materialPhotoURL}" alt="Foto do material" data-url="${material.materialPhotoURL}">` : 
+                        'Nenhuma'}
+                </td>
+                <td class="photo-cell">
+                    ${material.notePhotoURL ? 
+                        `<img src="${material.notePhotoURL}" alt="Foto da nota" data-url="${material.notePhotoURL}">` : 
+                        'Nenhuma'}
+                </td>
+                <td>${material.notes || '-'}</td>
+            `;
+            
+            materialsTableBody.appendChild(row);
+        });
+        
+        // Adicionar eventos para as imagens
+        document.querySelectorAll('.photo-cell img').forEach(img => {
+            img.addEventListener('click', function() {
+                document.getElementById('modal-image').src = this.dataset.url;
+                document.getElementById('image-modal').style.display = 'block';
+            });
+        });
+    }
 
-        // Upload para o Firebase Storage
-        async function uploadToStorage(photoData, folder) {
+    // 10. Funções de Filtro
+    function applyFilters() {
+        const typeFilter = document.getElementById('filter-type').value;
+        const materialFilter = document.getElementById('filter-material').value.toLowerCase();
+        const responsibleFilter = document.getElementById('filter-responsible').value.toLowerCase();
+        const locationFilter = document.getElementById('filter-location').value.toLowerCase();
+        const dateStart = document.getElementById('filter-date-start').value ? new Date(document.getElementById('filter-date-start').value) : null;
+        const dateEnd = document.getElementById('filter-date-end').value ? new Date(document.getElementById('filter-date-end').value) : null;
+        
+        const filtered = allMaterials.filter(material => {
+            // Aplicar todos os filtros
+            if (typeFilter !== 'todos' && material.type !== typeFilter) return false;
+            if (materialFilter && !material.name.toLowerCase().includes(materialFilter)) return false;
+            if (responsibleFilter && !material.responsible.toLowerCase().includes(responsibleFilter)) return false;
+            if (locationFilter && material.type === 'saida' && 
+                (!material.location || !material.location.toLowerCase().includes(locationFilter))) return false;
+            
+            // Filtro por data
+            const materialDate = material.date;
+            if (dateStart && materialDate < dateStart) return false;
+            if (dateEnd) {
+                const endDate = new Date(dateEnd);
+                endDate.setDate(endDate.getDate() + 1); // Inclui o dia inteiro
+                if (materialDate >= endDate) return false;
+            }
+            
+            return true;
+        });
+        
+        renderMaterialsTable(filtered);
+    }
+
+    function resetFilters() {
+        document.getElementById('filter-type').value = 'todos';
+        document.getElementById('filter-material').value = '';
+        document.getElementById('filter-responsible').value = '';
+        document.getElementById('filter-location').value = '';
+        document.getElementById('filter-date-start').value = '';
+        document.getElementById('filter-date-end').value = '';
+        
+        renderMaterialsTable(allMaterials);
+    }
+
+    // 11. Exportação para CSV
+    function exportToCSV() {
+        if (allMaterials.length === 0) {
+            alert('Não há dados para exportar');
+            return;
+        }
+        
+        let csv = 'Data/Hora,Tipo,Material,Quantidade,Destino,Responsável,URL Foto Material,URL Nota Fiscal,Observações\n';
+        
+        allMaterials.forEach(material => {
+            let dateStr;
             try {
-                // Gerar nome único para o arquivo
-                const timestamp = Date.now();
-                const filename = `photo_${timestamp}.jpg`;
-                const storageRef = storage.ref(`${folder}/${currentUser.uid}/${filename}`);
-                
-                // Converter data URL para blob
-                const blob = await fetch(photoData).then(res => res.blob());
-                
-                // Fazer upload
-                const snapshot = await storageRef.put(blob);
-                
-                // Obter URL de download
-                return await snapshot.ref.getDownloadURL();
-            } catch (error) {
-                console.error("Erro ao fazer upload da imagem:", error);
-                throw error;
-            }
-        }
-
-        // Aplicar filtros
-        function applyFilters() {
-            const typeFilter = filterType.value;
-            const materialFilter = filterMaterial.value.toLowerCase();
-            const responsibleFilter = filterResponsible.value.toLowerCase();
-            const locationFilter = filterLocation.value.toLowerCase();
-            const dateStart = filterDateStart.value ? new Date(filterDateStart.value) : null;
-            const dateEnd = filterDateEnd.value ? new Date(filterDateEnd.value) : null;
-            
-            const filtered = allMaterials.filter(material => {
-                // Filtro por tipo
-                if (typeFilter !== 'todos' && material.type !== typeFilter) return false;
-                
-                // Filtro por nome do material
-                if (materialFilter && !material.name.toLowerCase().includes(materialFilter)) return false;
-                
-                // Filtro por responsável
-                if (responsibleFilter && !material.responsible.toLowerCase().includes(responsibleFilter)) return false;
-                
-                // Filtro por destino (apenas para saídas)
-                if (locationFilter && material.type === 'saida' && 
-                    (!material.location || !material.location.toLowerCase().includes(locationFilter))) {
-                    return false;
-                }
-                
-                // Filtro por data
-                const materialDate = material.date.toDate ? material.date.toDate() : new Date(material.date);
-                
-                if (dateStart && materialDate < dateStart) return false;
-                if (dateEnd) {
-                    const endDate = new Date(dateEnd);
-                    endDate.setDate(endDate.getDate() + 1); // Inclui o dia inteiro
-                    if (materialDate >= endDate) return false;
-                }
-                
-                return true;
-            });
-            
-            renderMaterialsTable(filtered);
-        }
-
-        // Limpar filtros
-        function resetFilters() {
-            filterType.value = 'todos';
-            filterMaterial.value = '';
-            filterResponsible.value = '';
-            filterLocation.value = '';
-            filterDateStart.value = '';
-            filterDateEnd.value = '';
-            
-            renderMaterialsTable(allMaterials);
-        }
-
-        // Exportar para CSV
-        function exportToCSV() {
-            if (allMaterials.length === 0) {
-                alert('Não há dados para exportar');
-                return;
+                dateStr = material.date.toLocaleString('pt-BR');
+            } catch (e) {
+                dateStr = "Data inválida";
             }
             
-            let csv = 'Data/Hora,Tipo,Material,Quantidade,Destino,Responsável,URL Foto Material,URL Nota Fiscal,Observações\n';
+            const type = material.type === 'entrada' ? 'Entrada' : 'Saída';
+            const location = material.location || '';
+            const materialPhoto = material.materialPhotoURL || '';
+            const notePhoto = material.notePhotoURL || '';
+            const notes = material.notes ? `"${material.notes.replace(/"/g, '""')}"` : '';
             
-            allMaterials.forEach(material => {
-                const date = material.date.toDate ? material.date.toDate() : new Date(material.date);
-                const dateStr = date.toLocaleString();
-                const type = material.type === 'entrada' ? 'Entrada' : 'Saída';
-                const location = material.location || '';
-                const materialPhoto = material.materialPhotoURL || '';
-                const notePhoto = material.notePhotoURL || '';
-                const notes = material.notes ? `"${material.notes.replace(/"/g, '""')}"` : '';
-                
-                csv += `"${dateStr}",${type},"${material.name}",${material.quantity},"${location}","${material.responsible}","${materialPhoto}","${notePhoto}",${notes}\n`;
-            });
-            
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `movimentacoes_${new Date().toISOString().slice(0,10)}.csv`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
+            csv += `"${dateStr}",${type},"${material.name}",${material.quantity},"${location}","${material.responsible}","${materialPhoto}","${notePhoto}",${notes}\n`;
+        });
+        
+        // Criar e baixar o arquivo CSV
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `movimentacoes_${new Date().toISOString().slice(0,10)}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
 
-        // Inicializar a aplicação quando o DOM estiver pronto
-        document.addEventListener('DOMContentLoaded', initApp);
-    </script>
+    // 12. Parar Câmeras
+    function stopCameras() {
+        if (materialStream) {
+            materialStream.getTracks().forEach(track => track.stop());
+        }
+        if (noteStream) {
+            noteStream.getTracks().forEach(track => track.stop());
+        }
+    }
+
+    // Inicializar a aplicação quando o DOM estiver pronto
+    document.addEventListener('DOMContentLoaded', initApp);
+</script>
 </body>
 </html>
