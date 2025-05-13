@@ -3,153 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle de Materiais</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>Controle de Materiais v2 - Nota Fiscal e Destino</title>
     <style>
-        :root {
-            --primary: #4285f4;
-            --secondary: #34a853;
-            --danger: #ea4335;
-            --warning: #fbbc05;
-            --light: #f8f9fa;
-            --dark: #202124;
-        }
-        
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: Arial, sans-serif;
             margin: 0;
-            padding: 0;
-            background-color: #f5f7fa;
-            color: #333;
+            padding: 20px;
+            background-color: #f5f5f5;
         }
-        
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
-        }
-        
-        header {
-            background-color: var(--primary);
-            color: white;
+            background-color: white;
             padding: 20px;
             border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-section {
             margin-bottom: 20px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        
-        #auth-status {
-            font-size: 0.9em;
-            opacity: 0.9;
-        }
-        
-        .card {
-            background: white;
-            border-radius: 8px;
             padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #fff;
         }
-        
         .form-group {
             margin-bottom: 15px;
         }
-        
         label {
             display: block;
             margin-bottom: 5px;
-            font-weight: 600;
+            font-weight: bold;
+            color: #555;
         }
-        
         input, select, textarea {
             width: 100%;
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 4px;
-            font-size: 16px;
+            box-sizing: border-box;
+            font-size: 14px;
         }
-        
+        select {
+            height: 40px;
+        }
         button {
-            background-color: var(--primary);
+            background-color: #4CAF50;
             color: white;
-            border: none;
             padding: 10px 15px;
+            border: none;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 16px;
-            transition: all 0.3s;
+            margin-right: 10px;
+            font-size: 14px;
+            transition: background-color 0.3s;
         }
-        
         button:hover {
-            opacity: 0.9;
-            transform: translateY(-1px);
+            background-color: #45a049;
         }
-        
         button.secondary {
-            background-color: var(--secondary);
+            background-color: #f44336;
         }
-        
-        button.danger {
-            background-color: var(--danger);
+        button.secondary:hover {
+            background-color: #d32f2f;
         }
-        
-        button.warning {
-            background-color: var(--warning);
-            color: var(--dark);
+        .camera-container {
+            margin: 20px 0;
+            text-align: center;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            border: 1px dashed #ccc;
         }
-        
-        .photo-preview {
-            max-width: 100px;
-            max-height: 100px;
-            margin-top: 10px;
-            border-radius: 4px;
+        #video {
+            background-color: #eee;
+            width: 100%;
+            max-width: 400px;
+            height: 300px;
+            margin-bottom: 10px;
+        }
+        #canvas {
             display: none;
         }
-        
-        .table-container {
-            overflow-x: auto;
+        #photo {
+            max-width: 100%;
+            max-height: 300px;
+            margin-top: 10px;
+            border: 1px solid #ddd;
         }
-        
+        .material-list {
+            margin-top: 30px;
+        }
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
         }
-        
         th, td {
-            padding: 12px 15px;
+            border: 1px solid #ddd;
+            padding: 12px;
             text-align: left;
-            border-bottom: 1px solid #ddd;
         }
-        
         th {
-            background-color: var(--primary);
+            background-color: #4CAF50;
             color: white;
-            position: sticky;
-            top: 0;
+            font-weight: bold;
         }
-        
         tr:nth-child(even) {
             background-color: #f9f9f9;
         }
-        
         tr:hover {
             background-color: #f1f1f1;
         }
-        
-        .photo-cell img {
-            max-width: 50px;
-            max-height: 50px;
+        .filter-section {
+            margin-bottom: 20px;
+            padding: 20px;
+            background-color: #f2f2f2;
+            border-radius: 5px;
+        }
+        .actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        .photo-thumbnail {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
             cursor: pointer;
-            transition: transform 0.3s;
+            border: 1px solid #ddd;
             border-radius: 4px;
         }
-        
-        .photo-cell img:hover {
-            transform: scale(1.5);
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-        }
-        
         .modal {
             display: none;
             position: fixed;
@@ -158,756 +146,463 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
+            overflow: auto;
+            background-color: rgba(0,0,0,0.9);
         }
-        
         .modal-content {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100%;
+            margin: auto;
+            display: block;
+            width: 90%;
+            max-width: 800px;
+            margin-top: 50px;
         }
-        
-        .modal-img {
-            max-width: 90%;
-            max-height: 90%;
-            border-radius: 8px;
-        }
-        
         .close {
             position: absolute;
             top: 20px;
-            right: 30px;
-            color: white;
-            font-size: 30px;
+            right: 35px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
             cursor: pointer;
         }
-        
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
-            margin-left: 10px;
+        .required-field::after {
+            content: " *";
+            color: red;
         }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        .two-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
         }
-        
-        .camera-container {
-            margin: 15px 0;
-        }
-        
-        .camera-box {
-            width: 100%;
-            background-color: #f1f1f1;
-            border-radius: 4px;
-            overflow: hidden;
-            margin-bottom: 10px;
-        }
-        
-        video {
-            width: 100%;
-        }
-        
-        .photo-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        
-        .hidden {
-            display: none;
-        }
-        
         @media (max-width: 768px) {
-            .container {
-                padding: 10px;
-            }
-            
-            th, td {
-                padding: 8px 10px;
-                font-size: 14px;
+            .two-columns {
+                grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1><i class="fas fa-boxes"></i> Controle de Materiais</h1>
-            <div id="auth-status"><i class="fas fa-circle-notch fa-spin"></i> Conectando...</div>
-        </header>
-
-        <main>
-            <section class="card">
-                <h2><i class="fas fa-plus-circle"></i> Registrar Movimentação</h2>
-                <form id="material-form">
+        <h1>Controle de Materiais com Nota Fiscal e Destino</h1>
+        
+        <!-- Formulário de Entrada/Saída -->
+        <div class="form-section">
+            <h2>Registro de Material</h2>
+            <form id="materialForm">
+                <div class="two-columns">
                     <div class="form-group">
-                        <label for="material-type"><i class="fas fa-exchange-alt"></i> Tipo de Movimentação:</label>
-                        <select id="material-type" required>
+                        <label for="operationType" class="required-field">Tipo de Operação:</label>
+                        <select id="operationType" required>
                             <option value="">Selecione...</option>
-                            <option value="entrada">Entrada</option>
+                            <option value="entrada">Entrada (Nota Fiscal)</option>
                             <option value="saida">Saída</option>
                         </select>
                     </div>
                     
                     <div class="form-group">
-                        <label for="material-name"><i class="fas fa-tag"></i> Nome do Material:</label>
-                        <input type="text" id="material-name" required>
+                        <label for="invoiceNumber" class="required-field">Número da Nota Fiscal:</label>
+                        <input type="text" id="invoiceNumber" required>
+                    </div>
+                </div>
+                
+                <div class="two-columns">
+                    <div class="form-group">
+                        <label for="materialName" class="required-field">Nome do Material:</label>
+                        <input type="text" id="materialName" required>
                     </div>
                     
                     <div class="form-group">
-                        <label for="material-quantity"><i class="fas fa-calculator"></i> Quantidade:</label>
-                        <input type="number" id="material-quantity" required min="1">
+                        <label for="materialQuantity" class="required-field">Quantidade:</label>
+                        <input type="number" id="materialQuantity" min="1" value="1" required>
                     </div>
-                    
-                    <div class="form-group hidden" id="location-group">
-                        <label for="material-location"><i class="fas fa-map-marker-alt"></i> Destino (para saída):</label>
-                        <input type="text" id="material-location">
+                </div>
+                
+                <div class="form-group">
+                    <label for="materialDescription">Descrição:</label>
+                    <textarea id="materialDescription" rows="3"></textarea>
+                </div>
+                
+                <div class="two-columns">
+                    <div class="form-group">
+                        <label for="materialDate" class="required-field">Data:</label>
+                        <input type="datetime-local" id="materialDate" required>
                     </div>
                     
                     <div class="form-group">
-                        <label for="material-responsible"><i class="fas fa-user"></i> Responsável:</label>
-                        <input type="text" id="material-responsible" required>
+                        <label for="materialResponsible" class="required-field">Responsável:</label>
+                        <input type="text" id="materialResponsible" required>
+                    </div>
+                </div>
+                
+                <div class="two-columns">
+                    <div class="form-group">
+                        <label for="materialOrigin" class="required-field">Origem/Fornecedor:</label>
+                        <input type="text" id="materialOrigin" required>
                     </div>
                     
                     <div class="form-group">
-                        <label for="material-notes"><i class="fas fa-sticky-note"></i> Observações:</label>
-                        <textarea id="material-notes" rows="3"></textarea>
+                        <label for="materialDestination" class="required-field">Destino:</label>
+                        <input type="text" id="materialDestination" required>
                     </div>
-                    
-                    <div class="form-group">
-                        <label><i class="fas fa-camera"></i> Foto do Material:</label>
-                        <div class="camera-container">
-                            <div class="camera-box">
-                                <video id="material-video" autoplay></video>
-                                <canvas id="material-canvas" class="hidden"></canvas>
-                            </div>
-                            <img id="material-photo-preview" class="photo-preview">
-                            <div class="photo-actions">
-                                <button type="button" id="capture-material-btn" class="secondary"><i class="fas fa-camera"></i> Tirar Foto</button>
-                                <button type="button" id="upload-material-btn"><i class="fas fa-upload"></i> Carregar Foto</button>
-                                <input type="file" id="material-file-input" accept="image/*" class="hidden">
-                                <button type="button" id="remove-material-photo" class="danger hidden"><i class="fas fa-trash"></i> Remover</button>
-                            </div>
+                </div>
+                
+                <div class="camera-container">
+                    <label>Foto da Nota Fiscal/Material:</label>
+                    <div>
+                        <video id="video" autoplay></video>
+                        <canvas id="canvas"></canvas>
+                        <div class="actions">
+                            <button type="button" id="startCamera">Iniciar Câmera</button>
+                            <button type="button" id="takePhoto">Tirar Foto</button>
+                            <button type="button" id="clearPhoto" class="secondary">Limpar Foto</button>
                         </div>
                     </div>
-                    
+                    <img id="photo" alt="Foto da nota fiscal/material">
+                    <input type="hidden" id="photoData">
+                </div>
+                
+                <div class="actions">
+                    <button type="submit">Registrar</button>
+                    <button type="reset" class="secondary">Limpar Formulário</button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Filtros de Busca -->
+        <div class="filter-section">
+            <h2>Filtrar Materiais</h2>
+            <form id="filterForm">
+                <div class="two-columns">
                     <div class="form-group">
-                        <label><i class="fas fa-receipt"></i> Foto da Nota Fiscal:</label>
-                        <div class="camera-container">
-                            <div class="camera-box">
-                                <video id="note-video" autoplay></video>
-                                <canvas id="note-canvas" class="hidden"></canvas>
-                            </div>
-                            <img id="note-photo-preview" class="photo-preview">
-                            <div class="photo-actions">
-                                <button type="button" id="capture-note-btn" class="secondary"><i class="fas fa-camera"></i> Tirar Foto</button>
-                                <button type="button" id="upload-note-btn"><i class="fas fa-upload"></i> Carregar Foto</button>
-                                <input type="file" id="note-file-input" accept="image/*" class="hidden">
-                                <button type="button" id="remove-note-photo" class="danger hidden"><i class="fas fa-trash"></i> Remover</button>
-                            </div>
-                        </div>
+                        <label for="filterOperation">Tipo de Operação:</label>
+                        <select id="filterOperation">
+                            <option value="">Todos</option>
+                            <option value="entrada">Entrada (Nota Fiscal)</option>
+                            <option value="saida">Saída</option>
+                        </select>
                     </div>
                     
-                    <button type="submit" id="submit-btn">
-                        <i class="fas fa-save"></i> <span id="submit-text">Registrar Movimentação</span>
-                        <span id="submit-loading" class="loading hidden"></span>
-                    </button>
-                </form>
-            </section>
-            
-            <section class="card">
-                <h2><i class="fas fa-filter"></i> Filtrar Histórico</h2>
-                <div class="form-group">
-                    <label for="filter-type">Tipo:</label>
-                    <select id="filter-type">
-                        <option value="todos">Todos</option>
-                        <option value="entrada">Entradas</option>
-                        <option value="saida">Saídas</option>
-                    </select>
+                    <div class="form-group">
+                        <label for="filterInvoice">Número da Nota Fiscal:</label>
+                        <input type="text" id="filterInvoice">
+                    </div>
                 </div>
                 
-                <div class="form-group">
-                    <label for="filter-material">Material:</label>
-                    <input type="text" id="filter-material" placeholder="Nome do material">
+                <div class="two-columns">
+                    <div class="form-group">
+                        <label for="filterName">Nome do Material:</label>
+                        <input type="text" id="filterName">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="filterResponsible">Responsável:</label>
+                        <input type="text" id="filterResponsible">
+                    </div>
                 </div>
                 
-                <div class="form-group">
-                    <label for="filter-responsible">Responsável:</label>
-                    <input type="text" id="filter-responsible" placeholder="Nome do responsável">
+                <div class="two-columns">
+                    <div class="form-group">
+                        <label for="filterOrigin">Origem/Fornecedor:</label>
+                        <input type="text" id="filterOrigin">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="filterDestination">Destino:</label>
+                        <input type="text" id="filterDestination">
+                    </div>
                 </div>
                 
-                <div class="form-group">
-                    <label for="filter-location">Destino:</label>
-                    <input type="text" id="filter-location" placeholder="Filtrar por destino">
+                <div class="two-columns">
+                    <div class="form-group">
+                        <label for="filterDateFrom">Data de:</label>
+                        <input type="date" id="filterDateFrom">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="filterDateTo">Até:</label>
+                        <input type="date" id="filterDateTo">
+                    </div>
                 </div>
                 
-                <div class="form-group">
-                    <label for="filter-date-start">Data Início:</label>
-                    <input type="date" id="filter-date-start">
+                <div class="actions">
+                    <button type="button" id="applyFilter">Aplicar Filtro</button>
+                    <button type="reset" class="secondary">Limpar Filtros</button>
                 </div>
-                
-                <div class="form-group">
-                    <label for="filter-date-end">Data Fim:</label>
-                    <input type="date" id="filter-date-end">
-                </div>
-                
-                <div class="form-group">
-                    <button id="apply-filters" class="warning"><i class="fas fa-filter"></i> Aplicar Filtros</button>
-                    <button id="reset-filters"><i class="fas fa-broom"></i> Limpar Filtros</button>
-                    <button id="export-btn"><i class="fas fa-file-export"></i> Exportar</button>
-                </div>
-            </section>
-            
-            <section class="card">
-                <h2><i class="fas fa-history"></i> Histórico de Movimentações</h2>
-                <div class="table-container">
-                    <table id="materials-table">
-                        <thead>
-                            <tr>
-                                <th>Data/Hora</th>
-                                <th>Tipo</th>
-                                <th>Material</th>
-                                <th>Quantidade</th>
-                                <th>Destino</th>
-                                <th>Responsável</th>
-                                <th>Foto Material</th>
-                                <th>Nota Fiscal</th>
-                                <th>Observações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="materials-table-body">
-                            <!-- Dados serão inseridos aqui -->
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-        </main>
-    </div>
-
-    <!-- Modal para visualização de imagens -->
-    <div id="image-modal" class="modal">
-        <span class="close">&times;</span>
-        <div class="modal-content">
-            <img id="modal-image" class="modal-img">
+            </form>
+        </div>
+        
+        <!-- Lista de Materiais -->
+        <div class="material-list">
+            <h2>Registros de Materiais</h2>
+            <table id="materialsTable">
+                <thead>
+                    <tr>
+                        <th>Operação</th>
+                        <th>Nota Fiscal</th>
+                        <th>Material</th>
+                        <th>Qtd</th>
+                        <th>Data</th>
+                        <th>Responsável</th>
+                        <th>Origem</th>
+                        <th>Destino</th>
+                        <th>Foto</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="materialsTableBody">
+                    <!-- Dados serão inseridos aqui via JavaScript -->
+                </tbody>
+            </table>
         </div>
     </div>
-
-    <!-- Firebase SDK v8 (Compatível) -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-
-    <script>
-    // Configuração do Firebase
-    const firebaseConfig = {
-        apiKey: "AIzaSyBm0t_SQ1vyq2fW3aFqgKph-NB9BwCq60Y",
-        authDomain: "controle-materiais-v2.firebaseapp.com",
-        projectId: "controle-materiais-v2",
-        storageBucket: "controle-materiais-v2.appspot.com",
-        messagingSenderId: "1059762022447",
-        appId: "1:1059762022447:web:a977debad4cbc9ae313eda"
-    };
-
-    // Inicializar Firebase
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const storage = firebase.storage();
-    const auth = firebase.auth();
-
-    // Elementos DOM
-    const authStatus = document.getElementById('auth-status');
-    const materialForm = document.getElementById('material-form');
-    const materialsTableBody = document.getElementById('materials-table-body');
     
-    // Variáveis de estado
-    let currentUser = null;
-    let allMaterials = [];
-    let materialStream = null;
-    let noteStream = null;
-    let currentMaterialPhoto = null;
-    let currentNotePhoto = null;
-
-    // 1. Função de Autenticação Anônima (modificada)
-    function authenticateAnonymously() {
-        return new Promise((resolve, reject) => {
-            auth.onAuthStateChanged(user => {
-                if (user) {
-                    // Já está autenticado
-                    resolve(user);
-                } else {
-                    // Realiza autenticação anônima
-                    auth.signInAnonymously()
-                        .then((userCredential) => {
-                            resolve(userCredential.user);
-                        })
-                        .catch(error => {
-                            console.error("Erro na autenticação:", error);
-                            reject(error);
-                        });
-                }
-            });
-        });
-    }
-
-    // 2. Inicialização da Aplicação (modificada)
-    async function initApp() {
-        try {
-            authStatus.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Conectando...';
+    <!-- Modal para visualização da foto -->
+    <div id="photoModal" class="modal">
+        <span class="close">&times;</span>
+        <img class="modal-content" id="modalPhoto">
+    </div>
+    
+    <script>
+        // Variáveis globais
+        let materials = JSON.parse(localStorage.getItem('materials')) || [];
+        let stream = null;
+        
+        // Elementos do DOM
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const photo = document.getElementById('photo');
+        const photoData = document.getElementById('photoData');
+        const startCameraBtn = document.getElementById('startCamera');
+        const takePhotoBtn = document.getElementById('takePhoto');
+        const clearPhotoBtn = document.getElementById('clearPhoto');
+        const materialForm = document.getElementById('materialForm');
+        const filterForm = document.getElementById('filterForm');
+        const applyFilterBtn = document.getElementById('applyFilter');
+        const materialsTableBody = document.getElementById('materialsTableBody');
+        const photoModal = document.getElementById('photoModal');
+        const modalPhoto = document.getElementById('modalPhoto');
+        const closeModal = document.getElementsByClassName('close')[0];
+        
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Definir data/hora atual como padrão
+            const now = new Date();
+            const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+            document.getElementById('materialDate').value = localDateTime;
             
-            // Autenticação
-            currentUser = await authenticateAnonymously();
-            authStatus.innerHTML = '<i class="fas fa-check-circle"></i> Conectado';
-            console.log("Usuário autenticado:", currentUser.uid);
-            
-            // Inicializa câmeras
-            await initCameras();
-            
-            // Carrega dados
-            await loadMaterials();
-            
-            // Configura eventos
-            setupEventListeners();
-            
-        } catch (error) {
-            console.error("Falha na inicialização:", error);
-            authStatus.innerHTML = '<i class="fas fa-exclamation-circle"></i> Falha na conexão';
-            
-            // Mostra mensagem detalhada para o usuário
-            setTimeout(() => {
-                alert(`Erro ao conectar com o servidor:\n\n${error.message}\n\nPor favor, recarregue a página.`);
-            }, 500);
-        }
-    }
-
-    // 3. Inicialização das Câmeras (com tratamento de erro melhorado)
-    async function initCameras() {
-        try {
-            // Verifica se o navegador suporta mediaDevices
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                throw new Error("Seu navegador não suporta acesso à câmera");
-            }
-            
-            // Configuração da câmera do material
-            materialStream = await navigator.mediaDevices.getUserMedia({ 
-                video: { facingMode: 'environment' } 
-            });
-            document.getElementById('material-video').srcObject = materialStream;
-            
-            // Configuração da câmera da nota
-            noteStream = await navigator.mediaDevices.getUserMedia({ 
-                video: true 
-            });
-            document.getElementById('note-video').srcObject = noteStream;
-            
-        } catch (error) {
-            console.error("Erro ao acessar câmeras:", error);
-            // Esconde os botões de câmera
-            document.getElementById('capture-material-btn').style.display = 'none';
-            document.getElementById('capture-note-btn').style.display = 'none';
-            alert("Acesso à câmera não disponível. Você ainda pode carregar fotos.");
-        }
-    }
-
-    // 4. Carregar Materiais do Firestore (com tratamento de erro melhorado)
-    async function loadMaterials() {
-        try {
-            authStatus.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Carregando dados...';
-            
-            const snapshot = await db.collection('materials')
-                .where('userId', '==', currentUser.uid)
-                .orderBy('date', 'desc')
-                .get();
-            
-            allMaterials = snapshot.docs.map(doc => {
-                const data = doc.data();
-                // Garante que a data seja um objeto Date válido
-                let date;
-                try {
-                    date = data.date?.toDate?.() || new Date(data.date);
-                } catch (e) {
-                    console.warn("Data inválida, usando data atual", e);
-                    date = new Date();
-                }
-                
-                return {
-                    id: doc.id,
-                    ...data,
-                    date: date
-                };
-            });
-            
-            renderMaterialsTable(allMaterials);
-            authStatus.innerHTML = '<i class="fas fa-check-circle"></i> Conectado';
-            
-        } catch (error) {
-            console.error("Erro ao carregar materiais:", error);
-            authStatus.innerHTML = '<i class="fas fa-exclamation-circle"></i> Erro ao carregar';
-            alert("Erro ao carregar os dados. Por favor, recarregue a página.");
-            throw error;
-        }
-    }
-
-    // [Restante do código permanece igual...]
-    // 5. Configurar Event Listeners
-    function setupEventListeners() {
-        // Mostrar/ocultar campo de destino
-        document.getElementById('material-type').addEventListener('change', function() {
-            document.getElementById('location-group').classList.toggle('hidden', this.value !== 'saida');
+            // Carregar materiais
+            renderMaterialsTable();
         });
         
-        // Foto do material
-        document.getElementById('capture-material-btn').addEventListener('click', () => {
-            capturePhoto(document.getElementById('material-video'), document.getElementById('material-canvas'), photo => {
-                currentMaterialPhoto = photo;
-                document.getElementById('material-photo-preview').src = photo;
-                document.getElementById('material-photo-preview').style.display = 'block';
-                document.getElementById('remove-material-photo').classList.remove('hidden');
-            });
-        });
-        
-        document.getElementById('upload-material-btn').addEventListener('click', () => {
-            document.getElementById('material-file-input').click();
-        });
-        
-        document.getElementById('material-file-input').addEventListener('change', (e) => {
-            handleFileUpload(e, photo => {
-                currentMaterialPhoto = photo;
-                document.getElementById('material-photo-preview').src = photo;
-                document.getElementById('material-photo-preview').style.display = 'block';
-                document.getElementById('remove-material-photo').classList.remove('hidden');
-            });
-        });
-        
-        document.getElementById('remove-material-photo').addEventListener('click', () => {
-            currentMaterialPhoto = null;
-            document.getElementById('material-photo-preview').style.display = 'none';
-            document.getElementById('remove-material-photo').classList.add('hidden');
-            document.getElementById('material-file-input').value = '';
-        });
-        
-        // Foto da nota fiscal
-        document.getElementById('capture-note-btn').addEventListener('click', () => {
-            capturePhoto(document.getElementById('note-video'), document.getElementById('note-canvas'), photo => {
-                currentNotePhoto = photo;
-                document.getElementById('note-photo-preview').src = photo;
-                document.getElementById('note-photo-preview').style.display = 'block';
-                document.getElementById('remove-note-photo').classList.remove('hidden');
-            });
-        });
-        
-        document.getElementById('upload-note-btn').addEventListener('click', () => {
-            document.getElementById('note-file-input').click();
-        });
-        
-        document.getElementById('note-file-input').addEventListener('change', (e) => {
-            handleFileUpload(e, photo => {
-                currentNotePhoto = photo;
-                document.getElementById('note-photo-preview').src = photo;
-                document.getElementById('note-photo-preview').style.display = 'block';
-                document.getElementById('remove-note-photo').classList.remove('hidden');
-            });
-        });
-        
-        document.getElementById('remove-note-photo').addEventListener('click', () => {
-            currentNotePhoto = null;
-            document.getElementById('note-photo-preview').style.display = 'none';
-            document.getElementById('remove-note-photo').classList.add('hidden');
-            document.getElementById('note-file-input').value = '';
-        });
-        
-        // Formulário
+        startCameraBtn.addEventListener('click', startCamera);
+        takePhotoBtn.addEventListener('click', takePhoto);
+        clearPhotoBtn.addEventListener('click', clearPhoto);
         materialForm.addEventListener('submit', handleFormSubmit);
+        applyFilterBtn.addEventListener('click', renderMaterialsTable);
+        closeModal.addEventListener('click', () => photoModal.style.display = "none");
         
-        // Filtros
-        document.getElementById('apply-filters').addEventListener('click', applyFilters);
-        document.getElementById('reset-filters').addEventListener('click', resetFilters);
-        document.getElementById('export-btn').addEventListener('click', exportToCSV);
-        
-        // Modal
-        document.querySelector('.close').addEventListener('click', () => {
-            document.getElementById('image-modal').style.display = 'none';
-        });
-        
-        document.getElementById('image-modal').addEventListener('click', (e) => {
-            if (e.target === document.getElementById('image-modal')) {
-                document.getElementById('image-modal').style.display = 'none';
+        // Funções
+        function startCamera() {
+            if (stream) {
+                stopCamera();
+                return;
             }
-        });
-        
-        // Parar câmeras ao sair
-        window.addEventListener('beforeunload', stopCameras);
-    }
-
-    // 6. Funções para Manipulação de Fotos
-    function capturePhoto(videoElement, canvasElement, callback) {
-        try {
-            canvasElement.width = videoElement.videoWidth;
-            canvasElement.height = videoElement.videoHeight;
-            const ctx = canvasElement.getContext('2d');
-            ctx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
-            callback(canvasElement.toDataURL('image/jpeg', 0.8));
-        } catch (error) {
-            console.error("Erro ao capturar foto:", error);
-            alert("Erro ao capturar foto. Verifique se a câmera está disponível.");
-        }
-    }
-
-    function handleFileUpload(event, callback) {
-        const file = event.target.files[0];
-        if (file && file.type.match('image.*')) {
-            const reader = new FileReader();
-            reader.onload = (e) => callback(e.target.result);
-            reader.readAsDataURL(file);
-        } else {
-            alert("Por favor, selecione um arquivo de imagem válido.");
-        }
-    }
-
-    // 7. Manipulação do Formulário
-    async function handleFormSubmit(e) {
-        e.preventDefault();
-        
-        const submitBtn = document.getElementById('submit-btn');
-        const submitText = document.getElementById('submit-text');
-        const submitLoading = document.getElementById('submit-loading');
-        
-        try {
-            // Desativar botão e mostrar loading
-            submitBtn.disabled = true;
-            submitText.textContent = 'Enviando...';
-            submitLoading.classList.remove('hidden');
             
-            // Obter dados do formulário
-            const materialType = document.getElementById('material-type').value;
-            const formData = {
-                type: materialType,
-                name: document.getElementById('material-name').value,
-                quantity: Number(document.getElementById('material-quantity').value),
-                location: materialType === 'saida' ? document.getElementById('material-location').value : null,
-                responsible: document.getElementById('material-responsible').value,
-                notes: document.getElementById('material-notes').value,
-                userId: currentUser.uid,
-                date: firebase.firestore.FieldValue.serverTimestamp()
+            navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+                .then(function(mediaStream) {
+                    stream = mediaStream;
+                    video.srcObject = stream;
+                    startCameraBtn.textContent = 'Parar Câmera';
+                    takePhotoBtn.disabled = false;
+                })
+                .catch(function(err) {
+                    console.error("Erro ao acessar a câmera: ", err);
+                    alert("Não foi possível acessar a câmera. Verifique as permissões.");
+                });
+        }
+        
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+                video.srcObject = null;
+                startCameraBtn.textContent = 'Iniciar Câmera';
+                takePhotoBtn.disabled = true;
+            }
+        }
+        
+        function takePhoto() {
+            const context = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            const dataUrl = canvas.toDataURL('image/png');
+            photo.src = dataUrl;
+            photoData.value = dataUrl;
+            
+            stopCamera();
+        }
+        
+        function clearPhoto() {
+            photo.src = '';
+            photoData.value = '';
+        }
+        
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            
+            const material = {
+                id: Date.now(),
+                operationType: document.getElementById('operationType').value,
+                invoiceNumber: document.getElementById('invoiceNumber').value,
+                name: document.getElementById('materialName').value,
+                description: document.getElementById('materialDescription').value,
+                quantity: parseInt(document.getElementById('materialQuantity').value),
+                date: document.getElementById('materialDate').value,
+                responsible: document.getElementById('materialResponsible').value,
+                origin: document.getElementById('materialOrigin').value,
+                destination: document.getElementById('materialDestination').value,
+                photo: document.getElementById('photoData').value,
+                timestamp: new Date().getTime()
             };
             
-            // Upload das fotos se existirem
-            if (currentMaterialPhoto) {
-                formData.materialPhotoURL = await uploadToStorage(currentMaterialPhoto, 'materials');
-            }
+            materials.push(material);
+            saveMaterials();
+            renderMaterialsTable();
+            materialForm.reset();
+            clearPhoto();
             
-            if (currentNotePhoto) {
-                formData.notePhotoURL = await uploadToStorage(currentNotePhoto, 'notes');
-            }
+            // Resetar data/hora para atual
+            const now = new Date();
+            const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+            document.getElementById('materialDate').value = localDateTime;
             
-            // Salvar no Firestore
-            await db.collection('materials').add(formData);
-            
-            // Recarregar dados e limpar formulário
-            await loadMaterials();
-            resetForm();
-            
-            alert('Movimentação registrada com sucesso!');
-            
-        } catch (error) {
-            console.error("Erro ao registrar movimentação:", error);
-            alert(`Erro ao registrar: ${error.message}`);
-        } finally {
-            // Reativar botão
-            submitBtn.disabled = false;
-            submitText.textContent = 'Registrar Movimentação';
-            submitLoading.classList.add('hidden');
-        }
-    }
-
-    function resetForm() {
-        materialForm.reset();
-        currentMaterialPhoto = null;
-        currentNotePhoto = null;
-        document.getElementById('material-photo-preview').style.display = 'none';
-        document.getElementById('note-photo-preview').style.display = 'none';
-        document.getElementById('remove-material-photo').classList.add('hidden');
-        document.getElementById('remove-note-photo').classList.add('hidden');
-        document.getElementById('material-file-input').value = '';
-        document.getElementById('note-file-input').value = '';
-        document.getElementById('location-group').classList.add('hidden');
-    }
-
-    // 8. Upload para Storage
-    async function uploadToStorage(photoData, folder) {
-        try {
-            // Gerar nome único para o arquivo
-            const timestamp = Date.now();
-            const filename = `photo_${timestamp}.jpg`;
-            const storageRef = storage.ref(`${folder}/${currentUser.uid}/${filename}`);
-            
-            // Converter data URL para blob
-            const response = await fetch(photoData);
-            const blob = await response.blob();
-            
-            // Fazer upload
-            const snapshot = await storageRef.put(blob);
-            
-            // Obter URL de download
-            return await snapshot.ref.getDownloadURL();
-        } catch (error) {
-            console.error("Erro ao fazer upload da imagem:", error);
-            throw new Error("Falha ao enviar a imagem. Tente novamente.");
-        }
-    }
-
-    // 9. Renderização da Tabela
-    function renderMaterialsTable(materials) {
-        materialsTableBody.innerHTML = '';
-        
-        if (materials.length === 0) {
-            materialsTableBody.innerHTML = '<tr><td colspan="9" style="text-align: center;">Nenhuma movimentação encontrada</td></tr>';
-            return;
+            alert('Material registrado com sucesso!');
         }
         
-        materials.forEach(material => {
-            const row = document.createElement('tr');
-            
-            // Formata a data
-            let dateStr;
-            try {
-                dateStr = material.date.toLocaleString('pt-BR');
-            } catch (e) {
-                console.warn("Erro ao formatar data:", e);
-                dateStr = "Data inválida";
-            }
-            
-            row.innerHTML = `
-                <td>${dateStr}</td>
-                <td>${material.type === 'entrada' ? '📥 Entrada' : '📤 Saída'}</td>
-                <td>${material.name}</td>
-                <td>${material.quantity}</td>
-                <td>${material.location || '-'}</td>
-                <td>${material.responsible}</td>
-                <td class="photo-cell">
-                    ${material.materialPhotoURL ? 
-                        `<img src="${material.materialPhotoURL}" alt="Foto do material" data-url="${material.materialPhotoURL}">` : 
-                        'Nenhuma'}
-                </td>
-                <td class="photo-cell">
-                    ${material.notePhotoURL ? 
-                        `<img src="${material.notePhotoURL}" alt="Foto da nota" data-url="${material.notePhotoURL}">` : 
-                        'Nenhuma'}
-                </td>
-                <td>${material.notes || '-'}</td>
-            `;
-            
-            materialsTableBody.appendChild(row);
-        });
+        function saveMaterials() {
+            localStorage.setItem('materials', JSON.stringify(materials));
+        }
         
-        // Adicionar eventos para as imagens
-        document.querySelectorAll('.photo-cell img').forEach(img => {
-            img.addEventListener('click', function() {
-                document.getElementById('modal-image').src = this.dataset.url;
-                document.getElementById('image-modal').style.display = 'block';
+        function renderMaterialsTable() {
+            // Obter valores dos filtros
+            const operationFilter = document.getElementById('filterOperation').value;
+            const invoiceFilter = document.getElementById('filterInvoice').value.toLowerCase();
+            const nameFilter = document.getElementById('filterName').value.toLowerCase();
+            const responsibleFilter = document.getElementById('filterResponsible').value.toLowerCase();
+            const originFilter = document.getElementById('filterOrigin').value.toLowerCase();
+            const destinationFilter = document.getElementById('filterDestination').value.toLowerCase();
+            const dateFromFilter = document.getElementById('filterDateFrom').value;
+            const dateToFilter = document.getElementById('filterDateTo').value;
+            
+            // Filtrar materiais
+            let filteredMaterials = materials.filter(material => {
+                // Filtro por tipo de operação
+                if (operationFilter && material.operationType !== operationFilter) {
+                    return false;
+                }
+                
+                // Filtro por nota fiscal
+                if (invoiceFilter && !material.invoiceNumber.toLowerCase().includes(invoiceFilter)) {
+                    return false;
+                }
+                
+                // Filtro por nome
+                if (nameFilter && !material.name.toLowerCase().includes(nameFilter)) {
+                    return false;
+                }
+                
+                // Filtro por responsável
+                if (responsibleFilter && !material.responsible.toLowerCase().includes(responsibleFilter)) {
+                    return false;
+                }
+                
+                // Filtro por origem
+                if (originFilter && !material.origin.toLowerCase().includes(originFilter)) {
+                    return false;
+                }
+                
+                // Filtro por destino
+                if (destinationFilter && !material.destination.toLowerCase().includes(destinationFilter)) {
+                    return false;
+                }
+                
+                // Filtro por data
+                const materialDate = new Date(material.date).toISOString().split('T')[0];
+                
+                if (dateFromFilter && materialDate < dateFromFilter) {
+                    return false;
+                }
+                
+                if (dateToFilter && materialDate > dateToFilter) {
+                    return false;
+                }
+                
+                return true;
             });
-        });
-    }
-
-    // 10. Funções de Filtro
-    function applyFilters() {
-        const typeFilter = document.getElementById('filter-type').value;
-        const materialFilter = document.getElementById('filter-material').value.toLowerCase();
-        const responsibleFilter = document.getElementById('filter-responsible').value.toLowerCase();
-        const locationFilter = document.getElementById('filter-location').value.toLowerCase();
-        const dateStart = document.getElementById('filter-date-start').value ? new Date(document.getElementById('filter-date-start').value) : null;
-        const dateEnd = document.getElementById('filter-date-end').value ? new Date(document.getElementById('filter-date-end').value) : null;
-        
-        const filtered = allMaterials.filter(material => {
-            // Aplicar todos os filtros
-            if (typeFilter !== 'todos' && material.type !== typeFilter) return false;
-            if (materialFilter && !material.name.toLowerCase().includes(materialFilter)) return false;
-            if (responsibleFilter && !material.responsible.toLowerCase().includes(responsibleFilter)) return false;
-            if (locationFilter && material.type === 'saida' && 
-                (!material.location || !material.location.toLowerCase().includes(locationFilter))) return false;
             
-            // Filtro por data
-            const materialDate = material.date;
-            if (dateStart && materialDate < dateStart) return false;
-            if (dateEnd) {
-                const endDate = new Date(dateEnd);
-                endDate.setDate(endDate.getDate() + 1); // Inclui o dia inteiro
-                if (materialDate >= endDate) return false;
+            // Ordenar por data (mais recente primeiro)
+            filteredMaterials.sort((a, b) => b.timestamp - a.timestamp);
+            
+            // Renderizar tabela
+            materialsTableBody.innerHTML = '';
+            
+            if (filteredMaterials.length === 0) {
+                materialsTableBody.innerHTML = '<tr><td colspan="10" style="text-align: center;">Nenhum material encontrado</td></tr>';
+                return;
             }
             
-            return true;
-        });
-        
-        renderMaterialsTable(filtered);
-    }
-
-    function resetFilters() {
-        document.getElementById('filter-type').value = 'todos';
-        document.getElementById('filter-material').value = '';
-        document.getElementById('filter-responsible').value = '';
-        document.getElementById('filter-location').value = '';
-        document.getElementById('filter-date-start').value = '';
-        document.getElementById('filter-date-end').value = '';
-        
-        renderMaterialsTable(allMaterials);
-    }
-
-    // 11. Exportação para CSV
-    function exportToCSV() {
-        if (allMaterials.length === 0) {
-            alert('Não há dados para exportar');
-            return;
+            filteredMaterials.forEach(material => {
+                const row = document.createElement('tr');
+                
+                // Formatar data para exibição
+                const formattedDate = new Date(material.date).toLocaleString('pt-BR');
+                
+                // Criar miniatura da foto ou placeholder
+                let photoCell = 'Sem foto';
+                if (material.photo) {
+                    photoCell = `<img src="${material.photo}" class="photo-thumbnail" onclick="showPhotoModal('${material.photo}')">`;
+                }
+                
+                row.innerHTML = `
+                    <td>${material.operationType === 'entrada' ? 'Entrada' : 'Saída'}</td>
+                    <td>${material.invoiceNumber}</td>
+                    <td>${material.name}</td>
+                    <td>${material.quantity}</td>
+                    <td>${formattedDate}</td>
+                    <td>${material.responsible}</td>
+                    <td>${material.origin}</td>
+                    <td>${material.destination}</td>
+                    <td>${photoCell}</td>
+                    <td>
+                        <button onclick="deleteMaterial(${material.id})" class="secondary">Excluir</button>
+                    </td>
+                `;
+                
+                materialsTableBody.appendChild(row);
+            });
         }
         
-        let csv = 'Data/Hora,Tipo,Material,Quantidade,Destino,Responsável,URL Foto Material,URL Nota Fiscal,Observações\n';
-        
-        allMaterials.forEach(material => {
-            let dateStr;
-            try {
-                dateStr = material.date.toLocaleString('pt-BR');
-            } catch (e) {
-                dateStr = "Data inválida";
+        function deleteMaterial(id) {
+            if (confirm('Tem certeza que deseja excluir este registro?')) {
+                materials = materials.filter(material => material.id !== id);
+                saveMaterials();
+                renderMaterialsTable();
             }
-            
-            const type = material.type === 'entrada' ? 'Entrada' : 'Saída';
-            const location = material.location || '';
-            const materialPhoto = material.materialPhotoURL || '';
-            const notePhoto = material.notePhotoURL || '';
-            const notes = material.notes ? `"${material.notes.replace(/"/g, '""')}"` : '';
-            
-            csv += `"${dateStr}",${type},"${material.name}",${material.quantity},"${location}","${material.responsible}","${materialPhoto}","${notePhoto}",${notes}\n`;
-        });
+        }
         
-        // Criar e baixar o arquivo CSV
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `movimentacoes_${new Date().toISOString().slice(0,10)}.csv`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
-
-    // 12. Parar Câmeras
-    function stopCameras() {
-        if (materialStream) {
-            materialStream.getTracks().forEach(track => track.stop());
+        function showPhotoModal(photoSrc) {
+            modalPhoto.src = photoSrc;
+            photoModal.style.display = "block";
         }
-        if (noteStream) {
-            noteStream.getTracks().forEach(track => track.stop());
+        
+        // Fechar modal ao clicar fora da imagem
+        window.onclick = function(event) {
+            if (event.target == photoModal) {
+                photoModal.style.display = "none";
+            }
         }
-    }
-
-    // Inicializar a aplicação quando o DOM estiver pronto
-    document.addEventListener('DOMContentLoaded', initApp);
-</script>
+    </script>
 </body>
 </html>
