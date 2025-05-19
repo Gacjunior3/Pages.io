@@ -3,16 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle de Materiais v2</title>
+    <title>Controle de Entrada de Materiais</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
             --color-entrada: #28a745;
-            --color-saida: #dc3545;
             --color-primary: #0d6efd;
-            --color-warning: #ffc107;
-            --color-danger: #dc3545;
         }
         body { 
             padding-top: 20px; 
@@ -67,15 +64,8 @@
         .badge-entrada { 
             background-color: var(--color-entrada); 
         }
-        .badge-saida { 
-            background-color: var(--color-saida); 
-        }
-        .badge-warning { 
-            background-color: var(--color-warning);
-            color: #000;
-        }
-        .badge-danger { 
-            background-color: var(--color-danger); 
+        .badge-primary { 
+            background-color: var(--color-primary); 
         }
         .filter-section { 
             background-color: #f8f9fa; 
@@ -112,69 +102,6 @@
             max-height: 400px;
             overflow-y: auto;
         }
-        .prazo-proximo {
-            background-color: #fff3cd !important;
-        }
-        .prazo-atrasado {
-            background-color: #f8d7da !important;
-        }
-        .no-prazo {
-            background-color: #d1e7dd !important;
-        }
-        .cursor-pointer {
-            cursor: pointer;
-        }
-        
-        /* Estilos para impressão */
-        @media print {
-            body * {
-                visibility: hidden;
-            }
-            #comprovanteMotoristaContent, #comprovanteMotoristaContent * {
-                visibility: visible;
-            }
-            #comprovanteMotoristaContent {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                padding: 20px;
-                font-size: 14px;
-            }
-            .modal-footer, .modal-header {
-                display: none !important;
-            }
-            .border-top {
-                border-top: 1px solid #dee2e6 !important;
-            }
-            .img-thumbnail {
-                border: 1px solid #ddd !important;
-                padding: 2px !important;
-            }
-            /* Estilo para os campos RG na impressão */
-            #rgMotorista, #rgRecebedor {
-                border: none !important;
-                border-bottom: 1px solid #000 !important;
-                background: transparent !important;
-                padding: 0 5px !important;
-                width: auto !important;
-                display: inline !important;
-            }
-            label.form-label {
-                font-weight: bold !important;
-                margin-bottom: 0 !important;
-            }
-        }
-
-        /* Estilo para os campos RG no modal */
-        #comprovanteMotoristaContent .form-control-sm {
-            text-align: center;
-            margin: 0 auto;
-        }
-        #comprovanteMotoristaContent label.form-label {
-            font-size: 0.9rem;
-            margin-bottom: 0.2rem;
-        }
     </style>
 </head>
 <body>
@@ -205,7 +132,7 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="mb-0">
                 <i class="fas fa-boxes me-2" style="color: var(--color-primary);"></i>
-                Controle de Materiais
+                Controle de Entrada de Materiais
             </h2>
             <button id="logoutBtn" class="btn btn-outline-danger">
                 <i class="fas fa-sign-out-alt"></i> Sair
@@ -214,8 +141,8 @@
 
         <ul class="nav nav-tabs mb-4" id="myTab" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="movimentacao-tab" data-bs-toggle="tab" data-bs-target="#movimentacao" type="button" role="tab">
-                    <i class="fas fa-exchange-alt me-1"></i> Movimentação
+                <button class="nav-link active" id="entrada-tab" data-bs-toggle="tab" data-bs-target="#entrada" type="button" role="tab">
+                    <i class="fas fa-arrow-down me-1"></i> Nova Entrada
                 </button>
             </li>
             <li class="nav-item" role="presentation">
@@ -231,61 +158,51 @@
         </ul>
 
         <div class="tab-content" id="myTabContent">
-            <!-- Aba de Movimentação -->
-            <div class="tab-pane fade show active" id="movimentacao" role="tabpanel">
+            <!-- Aba de Entrada -->
+            <div class="tab-pane fade show active" id="entrada" role="tabpanel">
                 <div class="card mb-4">
                     <div class="card-header bg-primary text-white">
                         <h5 class="mb-0">
-                            <i class="fas fa-plus-circle me-1"></i> Nova Movimentação
+                            <i class="fas fa-arrow-down me-1"></i> Registrar Entrada
                         </h5>
                     </div>
                     <div class="card-body">
-                        <form id="movimentacaoForm">
+                        <form id="entradaForm">
                             <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="tipoMovimentacao" class="form-label">Tipo*</label>
-                                    <select class="form-select" id="tipoMovimentacao" required>
-                                        <option value="">Selecione...</option>
-                                        <option value="entrada">Entrada</option>
-                                        <option value="saida">Saída</option>
-                                    </select>
-                                </div>
                                 <div class="col-md-6 mb-3">
                                     <label for="responsavel" class="form-label">Responsável*</label>
                                     <input type="text" class="form-control" id="responsavel" required>
                                 </div>
-                            </div>
-                            
-                            <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label for="material" class="form-label">Material*</label>
                                     <input type="text" class="form-control" id="material" required>
                                 </div>
+                            </div>
+                            
+                            <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label for="quantidade" class="form-label">Quantidade*</label>
                                     <input type="number" class="form-control" id="quantidade" required min="1">
                                 </div>
-                            </div>
-                            
-                            <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label for="notaFiscal" class="form-label">Número da Nota Fiscal</label>
                                     <input type="text" class="form-control" id="notaFiscal">
                                 </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="dataMovimentacao" class="form-label">Data*</label>
-                                    <input type="datetime-local" class="form-control" id="dataMovimentacao" required>
-                                </div>
                             </div>
                             
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label for="origem" class="form-label">Origem (para entrada)</label>
-                                    <input type="text" class="form-control" id="origem">
+                                    <label for="estadoDestino" class="form-label">Estado de Destino*</label>
+                                    <select class="form-select" id="estadoDestino" required>
+                                        <option value="">Selecione um estado...</option>
+                                        <!-- Estados serão preenchidos via JavaScript -->
+                                    </select>
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <label for="destino" class="form-label">Destino (para saída)</label>
-                                    <input type="text" class="form-control" id="destino">
+                                    <label for="cidadeDestino" class="form-label">Cidade de Destino*</label>
+                                    <select class="form-select" id="cidadeDestino" required disabled>
+                                        <option value="">Selecione um estado primeiro...</option>
+                                    </select>
                                 </div>
                             </div>
                             
@@ -295,8 +212,8 @@
                                     <input type="number" class="form-control" id="prazoDias" min="0" placeholder="Opcional">
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <label for="observacao" class="form-label">Observação</label>
-                                    <input type="text" class="form-control" id="observacao" placeholder="Opcional">
+                                    <label for="dataEntrada" class="form-label">Data*</label>
+                                    <input type="datetime-local" class="form-control" id="dataEntrada" required>
                                 </div>
                             </div>
                             
@@ -320,7 +237,7 @@
                             </div>
                             
                             <button type="submit" class="btn btn-success w-100 mt-3">
-                                <i class="fas fa-save me-1"></i> Registrar Movimentação
+                                <i class="fas fa-save me-1"></i> Registrar Entrada
                             </button>
                         </form>
                     </div>
@@ -332,7 +249,7 @@
                 <div class="card">
                     <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">
-                            <i class="fas fa-list me-1"></i> Consulta de Movimentações
+                            <i class="fas fa-list me-1"></i> Consulta de Entradas
                         </h5>
                         <button class="btn btn-sm btn-light" type="button" data-bs-toggle="collapse" data-bs-target="#filtrosCollapse">
                             <i class="fas fa-filter me-1"></i> Filtros
@@ -343,53 +260,36 @@
                         <div class="collapse show" id="filtrosCollapse">
                             <div class="filter-section">
                                 <div class="row g-3">
-                                    <div class="col-md-3">
-                                        <label for="filtroTipo" class="form-label">Tipo</label>
-                                        <select class="form-select" id="filtroTipo">
-                                            <option value="">Todos</option>
-                                            <option value="entrada">Entrada</option>
-                                            <option value="saida">Saída</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-3">
+                                    <div class="col-md-4">
                                         <label for="filtroMaterial" class="form-label">Material</label>
                                         <input type="text" class="form-control" id="filtroMaterial" placeholder="Pesquisar...">
                                     </div>
-                                    <div class="col-md-3">
+                                    <div class="col-md-4">
                                         <label for="filtroResponsavel" class="form-label">Responsável</label>
                                         <input type="text" class="form-control" id="filtroResponsavel" placeholder="Pesquisar...">
                                     </div>
-                                    <div class="col-md-3">
+                                    <div class="col-md-4">
                                         <label for="filtroNotaFiscal" class="form-label">Nota Fiscal</label>
                                         <input type="text" class="form-control" id="filtroNotaFiscal" placeholder="Pesquisar...">
                                     </div>
-                                    <div class="col-md-3">
+                                    <div class="col-md-4">
                                         <label for="filtroDataInicio" class="form-label">Data Início</label>
                                         <input type="date" class="form-control" id="filtroDataInicio">
                                     </div>
-                                    <div class="col-md-3">
+                                    <div class="col-md-4">
                                         <label for="filtroDataFim" class="form-label">Data Fim</label>
                                         <input type="date" class="form-control" id="filtroDataFim">
                                     </div>
-                                    <div class="col-md-3">
-                                        <label for="filtroOrigemDestino" class="form-label">Origem/Destino</label>
-                                        <input type="text" class="form-control" id="filtroOrigemDestino" placeholder="Pesquisar...">
+                                    <div class="col-md-4">
+                                        <label for="filtroDestino" class="form-label">Destino</label>
+                                        <input type="text" class="form-control" id="filtroDestino" placeholder="Pesquisar...">
                                     </div>
-                                    <div class="col-md-3">
-                                        <label for="filtroStatusPrazo" class="form-label">Status Prazo</label>
-                                        <select class="form-select" id="filtroStatusPrazo">
-                                            <option value="">Todos</option>
-                                            <option value="no-prazo">No prazo</option>
-                                            <option value="proximo">Próximo do prazo</option>
-                                            <option value="atrasado">Atrasado</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-3 d-flex align-items-end">
+                                    <div class="col-md-6 d-flex align-items-end">
                                         <button id="aplicarFiltros" class="btn btn-primary w-100">
                                             <i class="fas fa-search me-1"></i> Aplicar
                                         </button>
                                     </div>
-                                    <div class="col-md-3 d-flex align-items-end">
+                                    <div class="col-md-6 d-flex align-items-end">
                                         <button id="limparFiltros" class="btn btn-secondary w-100">
                                             <i class="fas fa-broom me-1"></i> Limpar
                                         </button>
@@ -403,13 +303,12 @@
                             <table class="table table-striped table-hover" id="materialTable">
                                 <thead class="table-dark">
                                     <tr>
-                                        <th>Tipo</th>
                                         <th>Data</th>
                                         <th>Material</th>
                                         <th>Qtd</th>
                                         <th>Responsável</th>
                                         <th>Nota Fiscal</th>
-                                        <th>Origem/Destino</th>
+                                        <th>Destino</th>
                                         <th>Prazo</th>
                                         <th>Ações</th>
                                     </tr>
@@ -426,53 +325,21 @@
             <!-- Aba de Estoque -->
             <div class="tab-pane fade" id="estoque" role="tabpanel">
                 <div class="card">
-                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <div class="card-header bg-primary text-white">
                         <h5 class="mb-0">
                             <i class="fas fa-boxes me-1"></i> Estoque de Materiais
                         </h5>
-                        <button class="btn btn-sm btn-light" type="button" data-bs-toggle="collapse" data-bs-target="#filtrosEstoqueCollapse">
-                            <i class="fas fa-filter me-1"></i> Filtros
-                        </button>
                     </div>
                     <div class="card-body">
-                        <!-- Seção de Filtros -->
-                        <div class="collapse show" id="filtrosEstoqueCollapse">
-                            <div class="filter-section">
-                                <div class="row g-3">
-                                    <div class="col-md-4">
-                                        <label for="filtroEstoqueMaterial" class="form-label">Material</label>
-                                        <input type="text" class="form-control" id="filtroEstoqueMaterial" placeholder="Pesquisar...">
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label for="filtroEstoqueStatus" class="form-label">Status Prazo</label>
-                                        <select class="form-select" id="filtroEstoqueStatus">
-                                            <option value="">Todos</option>
-                                            <option value="no-prazo">No prazo</option>
-                                            <option value="proximo">Próximo do prazo</option>
-                                            <option value="atrasado">Atrasado</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-4 d-flex align-items-end">
-                                        <button id="aplicarFiltrosEstoque" class="btn btn-primary w-100">
-                                            <i class="fas fa-search me-1"></i> Aplicar
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
                         <!-- Tabela de Estoque -->
-                        <div class="table-responsive mt-3">
+                        <div class="table-responsive">
                             <table class="table table-striped table-hover" id="estoqueTable">
                                 <thead class="table-dark">
                                     <tr>
                                         <th>Material</th>
                                         <th>Quantidade</th>
-                                        <th>Dias no Galpão</th>
-                                        <th>Prazo (dias)</th>
-                                        <th>Status</th>
-                                        <th>Última Movimentação</th>
-                                        <th>Ações</th>
+                                        <th>Última Entrada</th>
+                                        <th>Destino</th>
                                     </tr>
                                 </thead>
                                 <tbody id="estoqueTableBody">
@@ -492,7 +359,7 @@
             <div class="modal-content">
                 <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title">
-                        <i class="fas fa-images me-1"></i> Fotos da Movimentação
+                        <i class="fas fa-images me-1"></i> Fotos da Entrada
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -516,114 +383,7 @@
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                         <i class="fas fa-times me-1"></i> Fechar
                     </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal para Confirmar Exclusão -->
-    <div class="modal fade" id="confirmarExclusaoModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title">
-                        <i class="fas fa-exclamation-triangle me-1"></i> Confirmar Exclusão
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Tem certeza que deseja excluir esta movimentação?</p>
-                    <div class="mb-3">
-                        <label for="senhaAdmin" class="form-label">
-                            <i class="fas fa-lock me-1"></i> Senha de Administrador
-                        </label>
-                        <input type="password" class="form-control" id="senhaAdmin" required>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="fas fa-times me-1"></i> Cancelar
-                    </button>
-                    <button type="button" id="confirmarExclusaoBtn" class="btn btn-danger">
-                        <i class="fas fa-trash me-1"></i> Confirmar Exclusão
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal para Detalhes do Material -->
-    <div class="modal fade" id="detalhesMaterialModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="detalhesMaterialTitle">
-                        <i class="fas fa-box-open me-1"></i> Detalhes do Material
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <h6><strong>Material:</strong> <span id="detalheMaterialNome"></span></h6>
-                            <h6><strong>Quantidade em estoque:</strong> <span id="detalheMaterialQuantidade"></span></h6>
-                        </div>
-                        <div class="col-md-6">
-                            <h6><strong>Dias no galpão:</strong> <span id="detalheMaterialDias"></span></h6>
-                            <h6><strong>Status do prazo:</strong> <span id="detalheMaterialStatus"></span></h6>
-                        </div>
-                    </div>
-                    
-                    <h5 class="mt-4 mb-3"><i class="fas fa-exchange-alt me-2"></i>Histórico de Movimentações</h5>
-                    <div class="material-details">
-                        <table class="table table-sm">
-                            <thead>
-                                <tr>
-                                    <th>Data</th>
-                                    <th>Tipo</th>
-                                    <th>Qtd</th>
-                                    <th>Responsável</th>
-                                    <th>Origem/Destino</th>
-                                    <th>Prazo</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="detalhesMaterialHistorico">
-                                <!-- Histórico será carregado aqui -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="fas fa-times me-1"></i> Fechar
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal para Comprovante do Motorista -->
-    <div class="modal fade" id="comprovanteMotoristaModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title">
-                        <i class="fas fa-truck me-1"></i> Comprovante de Entrega/Retirada
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body" id="comprovanteMotoristaContent">
-                    <!-- Conteúdo será gerado dinamicamente -->
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="fas fa-times me-1"></i> Fechar
-                    </button>
-                    <button type="button" id="imprimirComprovanteBtn" class="btn btn-success">
-                        <i class="fas fa-print me-1"></i> Imprimir
-                    </button>
-                    <button type="button" id="salvarFotosBtn" class="btn btn-primary">
+                    <button type="button" class="btn btn-primary" onclick="salvarFotosDoModal()">
                         <i class="fas fa-download me-1"></i> Salvar Fotos
                     </button>
                 </div>
@@ -673,9 +433,7 @@
         let currentUser = null;
         let fotoNotaFile = null;
         let fotoMaterialFile = null;
-        let movimentacaoAtual = null;
-        const SENHA_ADMIN = "admin123"; // Altere para sua senha
-        let todasMovimentacoes = [];
+        let todasEntradas = [];
         let estoque = {};
 
         $(document).ready(function() {
@@ -690,14 +448,80 @@
                 toast.show();
             }
 
+            // Lista de estados brasileiros com siglas
+            const estadosBrasileiros = [
+                { nome: "Acre", sigla: "AC" },
+                { nome: "Alagoas", sigla: "AL" },
+                { nome: "Amapá", sigla: "AP" },
+                { nome: "Amazonas", sigla: "AM" },
+                { nome: "Bahia", sigla: "BA" },
+                { nome: "Ceará", sigla: "CE" },
+                { nome: "Distrito Federal", sigla: "DF" },
+                { nome: "Espírito Santo", sigla: "ES" },
+                { nome: "Goiás", sigla: "GO" },
+                { nome: "Maranhão", sigla: "MA" },
+                { nome: "Mato Grosso", sigla: "MT" },
+                { nome: "Mato Grosso do Sul", sigla: "MS" },
+                { nome: "Minas Gerais", sigla: "MG" },
+                { nome: "Pará", sigla: "PA" },
+                { nome: "Paraíba", sigla: "PB" },
+                { nome: "Paraná", sigla: "PR" },
+                { nome: "Pernambuco", sigla: "PE" },
+                { nome: "Piauí", sigla: "PI" },
+                { nome: "Rio de Janeiro", sigla: "RJ" },
+                { nome: "Rio Grande do Norte", sigla: "RN" },
+                { nome: "Rio Grande do Sul", sigla: "RS" },
+                { nome: "Rondônia", sigla: "RO" },
+                { nome: "Roraima", sigla: "RR" },
+                { nome: "Santa Catarina", sigla: "SC" },
+                { nome: "São Paulo", sigla: "SP" },
+                { nome: "Sergipe", sigla: "SE" },
+                { nome: "Tocantins", sigla: "TO" }
+            ];
+
+            // Carregar estados brasileiros
+            function carregarEstados() {
+                const selectEstadoDestino = $('#estadoDestino');
+                estadosBrasileiros.forEach(estado => {
+                    selectEstadoDestino.append(`<option value="${estado.sigla}">${estado.nome} (${estado.sigla})</option>`);
+                });
+                
+                $('#estadoDestino').change(function() {
+                    const siglaEstado = $(this).val();
+                    carregarCidades(siglaEstado, '#cidadeDestino');
+                });
+            }
+
+            // Carregar cidades de um estado específico (simplificado)
+            function carregarCidades(siglaEstado, seletorCidade) {
+                if (!siglaEstado) {
+                    $(seletorCidade).empty().append('<option value="">Selecione um estado primeiro...</option>').prop('disabled', true);
+                    return;
+                }
+                
+                $(seletorCidade).empty().append('<option value="">Carregando cidades...</option>').prop('disabled', true);
+                
+                setTimeout(() => {
+                    const cidadesExemplo = ["Capital", "Cidade 1", "Cidade 2", "Cidade 3"];
+                    const select = $(seletorCidade);
+                    select.empty();
+                    
+                    cidadesExemplo.forEach(cidade => {
+                        select.append(`<option value="${cidade}">${cidade}</option>`);
+                    });
+                    
+                    select.prop('disabled', false);
+                }, 500);
+            }
+
             // Verificação de autenticação
             auth.onAuthStateChanged(user => {
-                console.log("Status de autenticação:", user);
                 currentUser = user;
                 if (user) {
                     $('#loginContainer').hide();
                     $('#appContainer').show();
-                    carregarMovimentacoes();
+                    carregarEstados();
+                    carregarEntradas();
                 } else {
                     $('#loginContainer').show();
                     $('#appContainer').hide();
@@ -709,8 +533,6 @@
                 e.preventDefault();
                 const email = $('#email').val();
                 const password = $('#password').val();
-                
-                $('#loginAlert').addClass('d-none');
                 
                 auth.signInWithEmailAndPassword(email, password)
                     .catch(error => {
@@ -727,15 +549,17 @@
             $('#fotoNota').change(function(e) {
                 fotoNotaFile = e.target.files[0];
                 previewImagem(fotoNotaFile, '#previewNota');
+                salvarFotoNoDispositivo(fotoNotaFile, 'nota_fiscal_' + new Date().getTime() + '.jpg');
             });
 
             $('#fotoMaterial').change(function(e) {
                 fotoMaterialFile = e.target.files[0];
                 previewImagem(fotoMaterialFile, '#previewMaterial');
+                salvarFotoNoDispositivo(fotoMaterialFile, 'material_' + new Date().getTime() + '.jpg');
             });
 
-            // Formulário de movimentação
-            $('#movimentacaoForm').submit(async function(e) {
+            // Formulário de entrada
+            $('#entradaForm').submit(async function(e) {
                 e.preventDefault();
                 
                 if (!currentUser) {
@@ -743,39 +567,34 @@
                     return;
                 }
 
-                const tipo = $('#tipoMovimentacao').val();
                 const responsavel = $('#responsavel').val();
                 const material = $('#material').val();
                 const quantidade = $('#quantidade').val();
                 const notaFiscal = $('#notaFiscal').val();
-                const dataMovimentacao = $('#dataMovimentacao').val();
-                const origem = $('#origem').val();
-                const destino = $('#destino').val();
+                const estadoDestino = $('#estadoDestino').val();
+                const cidadeDestino = $('#cidadeDestino').val();
                 const prazoDias = $('#prazoDias').val();
-                const observacao = $('#observacao').val();
+                const dataEntrada = $('#dataEntrada').val();
 
                 // Validação
-                if (!tipo || !responsavel || !material || !quantidade || !dataMovimentacao) {
+                if (!responsavel || !material || !quantidade || !dataEntrada || !estadoDestino || !cidadeDestino) {
                     showToast('Atenção', 'Preencha todos os campos obrigatórios', 'warning');
                     return;
                 }
 
                 try {
-                    // Mostrar loading
-                    $('#movimentacaoForm button[type="submit"]').html('<span class="loading-spinner"></span> Salvando...').prop('disabled', true);
+                    $('#entradaForm button[type="submit"]').html('<span class="loading-spinner"></span> Salvando...').prop('disabled', true);
                     
-                    // Salvar dados principais
-                    const docRef = await db.collection('movimentacoes').add({
-                        tipo,
+                    const destino = `${cidadeDestino}/${estadoDestino}`;
+                    
+                    const docRef = await db.collection('entradas').add({
                         responsavel,
                         material,
                         quantidade: parseInt(quantidade),
                         notaFiscal: notaFiscal || null,
-                        data: firebase.firestore.FieldValue.serverTimestamp(),
-                        origem: tipo === 'entrada' ? origem : null,
-                        destino: tipo === 'saida' ? destino : null,
+                        destino,
                         prazoDias: prazoDias ? parseInt(prazoDias) : null,
-                        observacao: observacao || null,
+                        data: firebase.firestore.FieldValue.serverTimestamp(),
                         usuario: currentUser.email,
                         criadoEm: new Date().toISOString()
                     });
@@ -785,18 +604,13 @@
                     if (fotoNotaFile) {
                         const notaRef = storage.ref(`notas_fiscais/${docRef.id}/${fotoNotaFile.name}`);
                         uploadTasks.push(notaRef.put(fotoNotaFile).then(snapshot => snapshot.ref.getDownloadURL()));
-                    } else {
-                        uploadTasks.push(Promise.resolve(null));
                     }
                     
                     if (fotoMaterialFile) {
                         const materialRef = storage.ref(`materiais/${docRef.id}/${fotoMaterialFile.name}`);
                         uploadTasks.push(materialRef.put(fotoMaterialFile).then(snapshot => snapshot.ref.getDownloadURL()));
-                    } else {
-                        uploadTasks.push(Promise.resolve(null));
                     }
 
-                    // Aguardar uploads e atualizar com URLs
                     const [fotoNotaUrl, fotoMaterialUrl] = await Promise.all(uploadTasks);
                     const updateData = {};
                     if (fotoNotaUrl) updateData.fotoNotaUrl = fotoNotaUrl;
@@ -806,118 +620,58 @@
                         await docRef.update(updateData);
                     }
 
-                    showToast('Sucesso', 'Movimentação registrada com sucesso!', 'success');
+                    showToast('Sucesso', 'Entrada registrada com sucesso!', 'success');
                     
                     // Limpar formulário
-                    $('#movimentacaoForm')[0].reset();
+                    $('#entradaForm')[0].reset();
                     $('#previewNota, #previewMaterial').empty();
+                    $('#cidadeDestino').empty().append('<option value="">Selecione um estado primeiro...</option>').prop('disabled', true);
                     fotoNotaFile = fotoMaterialFile = null;
                     
-                    // Recarregar dados
-                    carregarMovimentacoes();
+                    carregarEntradas();
                     
                 } catch (error) {
-                    console.error('Erro:', error);
-                    showToast('Erro', 'Falha ao registrar movimentação: ' + error.message, 'danger');
+                    showToast('Erro', 'Falha ao registrar entrada: ' + error.message, 'danger');
                 } finally {
-                    $('#movimentacaoForm button[type="submit"]').html('<i class="fas fa-save me-1"></i> Registrar Movimentação').prop('disabled', false);
-                }
-            });
-
-            // Configuração da exclusão
-            $('#confirmarExclusaoBtn').click(async function() {
-                const senha = $('#senhaAdmin').val();
-                if (senha !== SENHA_ADMIN) {
-                    showToast('Erro', 'Senha de administrador incorreta', 'danger');
-                    return;
-                }
-
-                try {
-                    $(this).html('<span class="loading-spinner"></span> Excluindo...').prop('disabled', true);
-                    
-                    // Exclui do Firestore
-                    await db.collection('movimentacoes').doc(movimentacaoAtual.id).delete();
-                    
-                    // Exclui as fotos do Storage (se existirem)
-                    const deletions = [];
-                    if (movimentacaoAtual.fotoNotaUrl) {
-                        const notaRef = storage.refFromURL(movimentacaoAtual.fotoNotaUrl);
-                        deletions.push(notaRef.delete());
-                    }
-                    if (movimentacaoAtual.fotoMaterialUrl) {
-                        const materialRef = storage.refFromURL(movimentacaoAtual.fotoMaterialUrl);
-                        deletions.push(materialRef.delete());
-                    }
-
-                    await Promise.all(deletions);
-                    showToast('Sucesso', 'Movimentação excluída com sucesso', 'success');
-                    $('#confirmarExclusaoModal').modal('hide');
-                    carregarMovimentacoes();
-                    
-                } catch (error) {
-                    showToast('Erro', 'Falha ao excluir: ' + error.message, 'danger');
-                } finally {
-                    $(this).html('<i class="fas fa-trash me-1"></i> Confirmar Exclusão').prop('disabled', false);
+                    $('#entradaForm button[type="submit"]').html('<i class="fas fa-save me-1"></i> Registrar Entrada').prop('disabled', false);
                 }
             });
 
             // Event Listeners para filtros
             $('#aplicarFiltros').click(aplicarFiltros);
             $('#limparFiltros').click(function() {
-                $('#filtroTipo, #filtroMaterial, #filtroResponsavel, #filtroNotaFiscal, #filtroDataInicio, #filtroDataFim, #filtroOrigemDestino, #filtroStatusPrazo').val('');
+                $('#filtroMaterial, #filtroResponsavel, #filtroNotaFiscal, #filtroDataInicio, #filtroDataFim, #filtroDestino').val('');
                 aplicarFiltros();
-            });
-
-            // Filtros de estoque
-            $('#aplicarFiltrosEstoque').click(aplicarFiltrosEstoque);
-            
-            // Aplicar filtro ao pressionar Enter
-            $('.form-control').keypress(function(e) {
-                if (e.which === 13) {
-                    if ($('#estoque').hasClass('active')) {
-                        aplicarFiltrosEstoque();
-                    } else {
-                        aplicarFiltros();
-                    }
-                }
             });
 
             // Carrega a data atual
             const now = new Date();
             const timezoneOffset = now.getTimezoneOffset() * 60000;
             const localISOTime = new Date(now - timezoneOffset).toISOString().slice(0, 16);
-            $('#dataMovimentacao').val(localISOTime);
+            $('#dataEntrada').val(localISOTime);
         });
 
-        // Função para carregar movimentações
-        async function carregarMovimentacoes() {
+        // Função para carregar entradas
+        async function carregarEntradas() {
             try {
                 showLoading(true);
                 
-                const snapshot = await db.collection('movimentacoes')
+                const snapshot = await db.collection('entradas')
                     .orderBy('data', 'desc')
                     .get();
 
-                todasMovimentacoes = [];
+                todasEntradas = [];
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     data.id = doc.id;
-                    
-                    // Garantir que os campos origem e destino existam
-                    if (!data.origem) data.origem = '';
-                    if (!data.destino) data.destino = '';
-                    if (!data.prazoDias) data.prazoDias = null;
-                    
-                    todasMovimentacoes.push(data);
+                    todasEntradas.push(data);
                 });
 
-                // Calcular estoque
                 calcularEstoque();
                 aplicarFiltros();
                 atualizarTabelaEstoque();
             } catch (error) {
-                console.error("Erro ao carregar:", error);
-                showToast('Erro', 'Falha ao carregar movimentações: ' + error.message, 'danger');
+                showToast('Erro', 'Falha ao carregar entradas: ' + error.message, 'danger');
             } finally {
                 showLoading(false);
             }
@@ -927,86 +681,49 @@
         function calcularEstoque() {
             estoque = {};
             
-            todasMovimentacoes.forEach(mov => {
-                if (!estoque[mov.material]) {
-                    estoque[mov.material] = {
+            todasEntradas.forEach(entrada => {
+                if (!estoque[entrada.material]) {
+                    estoque[entrada.material] = {
                         quantidade: 0,
-                        movimentacoes: [],
-                        ultimaMovimentacao: null,
-                        prazoDias: mov.prazoDias || null
+                        ultimaEntrada: null,
+                        destino: entrada.destino
                     };
                 }
                 
-                if (mov.tipo === 'entrada') {
-                    estoque[mov.material].quantidade += parseInt(mov.quantidade);
-                } else {
-                    estoque[mov.material].quantidade -= parseInt(mov.quantidade);
-                }
+                estoque[entrada.material].quantidade += parseInt(entrada.quantidade);
                 
-                // Adiciona a movimentação ao histórico
-                estoque[mov.material].movimentacoes.push(mov);
-                
-                // Atualiza a última movimentação
-                const dataMov = mov.data?.toDate() || new Date(mov.criadoEm);
-                if (!estoque[mov.material].ultimaMovimentacao || 
-                    dataMov > estoque[mov.material].ultimaMovimentacao.data) {
-                    estoque[mov.material].ultimaMovimentacao = {
-                        data: dataMov,
-                        tipo: mov.tipo,
-                        quantidade: mov.quantidade
+                const dataEntrada = entrada.data?.toDate() || new Date(entrada.criadoEm);
+                if (!estoque[entrada.material].ultimaEntrada || 
+                    dataEntrada > estoque[entrada.material].ultimaEntrada.data) {
+                    estoque[entrada.material].ultimaEntrada = {
+                        data: dataEntrada,
+                        destino: entrada.destino
                     };
-                }
-                
-                // Mantém o maior prazo (caso haja entradas com prazos diferentes)
-                if (mov.prazoDias && (!estoque[mov.material].prazoDias || mov.prazoDias > estoque[mov.material].prazoDias)) {
-                    estoque[mov.material].prazoDias = mov.prazoDias;
                 }
             });
         }
 
         // Função para aplicar filtros
         function aplicarFiltros() {
-            const tipo = $('#filtroTipo').val().toLowerCase();
             const material = $('#filtroMaterial').val().toLowerCase();
             const responsavel = $('#filtroResponsavel').val().toLowerCase();
             const notaFiscal = $('#filtroNotaFiscal').val().toLowerCase();
             const dataInicio = $('#filtroDataInicio').val();
             const dataFim = $('#filtroDataFim').val();
-            const origemDestino = $('#filtroOrigemDestino').val().toLowerCase();
-            const statusPrazo = $('#filtroStatusPrazo').val();
+            const destino = $('#filtroDestino').val().toLowerCase();
 
-            const resultados = todasMovimentacoes.filter(mov => {
-                // Filtro por tipo
-                if (tipo && mov.tipo !== tipo) return false;
+            const resultados = todasEntradas.filter(entrada => {
+                if (material && !entrada.material.toLowerCase().includes(material)) return false;
+                if (responsavel && !entrada.responsavel.toLowerCase().includes(responsavel)) return false;
+                if (notaFiscal && (!entrada.notaFiscal || !entrada.notaFiscal.toLowerCase().includes(notaFiscal))) return false;
+                if (destino && !entrada.destino.toLowerCase().includes(destino)) return false;
                 
-                // Filtro por material
-                if (material && !mov.material.toLowerCase().includes(material)) return false;
-                
-                // Filtro por responsável
-                if (responsavel && !mov.responsavel.toLowerCase().includes(responsavel)) return false;
-                
-                // Filtro por nota fiscal
-                if (notaFiscal && (!mov.notaFiscal || !mov.notaFiscal.toLowerCase().includes(notaFiscal))) return false;
-                
-                // Filtro por origem/destino
-                if (origemDestino) {
-                    const origemDestinoStr = (mov.tipo === 'entrada' ? mov.origem : mov.destino) || '';
-                    if (!origemDestinoStr.toLowerCase().includes(origemDestino)) return false;
-                }
-                
-                // Filtro por status do prazo
-                if (statusPrazo) {
-                    const status = verificarStatusPrazo(mov);
-                    if (status !== statusPrazo) return false;
-                }
-                
-                // Filtro por data
-                const dataMov = mov.data?.toDate() || new Date(mov.criadoEm);
-                if (dataInicio && new Date(dataInicio) > dataMov) return false;
+                const dataEntrada = entrada.data?.toDate() || new Date(entrada.criadoEm);
+                if (dataInicio && new Date(dataInicio) > dataEntrada) return false;
                 if (dataFim) {
                     const fim = new Date(dataFim);
-                    fim.setDate(fim.getDate() + 1); // Inclui o dia inteiro
-                    if (fim < dataMov) return false;
+                    fim.setDate(fim.getDate() + 1);
+                    if (fim < dataEntrada) return false;
                 }
                 
                 return true;
@@ -1015,233 +732,67 @@
             exibirResultados(resultados);
         }
 
-        // Função para aplicar filtros de estoque
-        function aplicarFiltrosEstoque() {
-            const material = $('#filtroEstoqueMaterial').val().toLowerCase();
-            const status = $('#filtroEstoqueStatus').val();
-
-            const resultados = Object.keys(estoque)
-                .filter(nomeMaterial => {
-                    // Filtro por nome do material
-                    if (material && !nomeMaterial.toLowerCase().includes(material)) return false;
-                    
-                    // Filtro por status
-                    if (status) {
-                        const materialInfo = estoque[nomeMaterial];
-                        const diasNoGalpao = calcularDiasNoGalpao(materialInfo);
-                        const statusMaterial = verificarStatusPrazoMaterial(materialInfo, diasNoGalpao);
-                        if (statusMaterial !== status) return false;
-                    }
-                    
-                    return true;
-                })
-                .map(nomeMaterial => {
-                    const materialInfo = estoque[nomeMaterial];
-                    const diasNoGalpao = calcularDiasNoGalpao(materialInfo);
-                    const status = verificarStatusPrazoMaterial(materialInfo, diasNoGalpao);
-                    
-                    return {
-                        nome: nomeMaterial,
-                        quantidade: materialInfo.quantidade,
-                        diasNoGalpao: diasNoGalpao,
-                        prazoDias: materialInfo.prazoDias,
-                        status: status,
-                        ultimaMovimentacao: materialInfo.ultimaMovimentacao
-                    };
-                });
-
-            exibirResultadosEstoque(resultados);
-        }
-
-        // Função para verificar status do prazo de uma movimentação
-        function verificarStatusPrazo(movimentacao) {
-            if (!movimentacao.prazoDias) return 'no-prazo';
-            
-            const dataMov = movimentacao.data?.toDate() || new Date(movimentacao.criadoEm);
-            const diasDecorridos = Math.floor((new Date() - dataMov) / (1000 * 60 * 60 * 24));
-            
-            if (diasDecorridos > movimentacao.prazoDias) {
-                return 'atrasado';
-            } else if (diasDecorridos > movimentacao.prazoDias * 0.8) { // 80% do prazo
-                return 'proximo';
-            } else {
-                return 'no-prazo';
-            }
-        }
-
-        // Função para verificar status do prazo de um material no estoque
-        function verificarStatusPrazoMaterial(materialInfo, diasNoGalpao) {
-            if (!materialInfo.prazoDias) return 'no-prazo';
-            
-            if (diasNoGalpao > materialInfo.prazoDias) {
-                return 'atrasado';
-            } else if (diasNoGalpao > materialInfo.prazoDias * 0.8) { // 80% do prazo
-                return 'proximo';
-            } else {
-                return 'no-prazo';
-            }
-        }
-
-        // Função para calcular dias no galpão
-        function calcularDiasNoGalpao(materialInfo) {
-            if (materialInfo.quantidade <= 0) return 0;
-            
-            // Encontra a data da última entrada
-            let ultimaEntrada = null;
-            materialInfo.movimentacoes.forEach(mov => {
-                if (mov.tipo === 'entrada') {
-                    const dataMov = mov.data?.toDate() || new Date(mov.criadoEm);
-                    if (!ultimaEntrada || dataMov > ultimaEntrada) {
-                        ultimaEntrada = dataMov;
-                    }
-                }
-            });
-            
-            if (!ultimaEntrada) return 0;
-            
-            return Math.floor((new Date() - ultimaEntrada) / (1000 * 60 * 60 * 24));
-        }
-
         // Função para exibir resultados na tabela
         function exibirResultados(dados) {
             const tbody = $('#materialTableBody');
             tbody.empty();
 
             if (dados.length === 0) {
-                tbody.append('<tr><td colspan="9" class="text-center py-4 text-muted">Nenhuma movimentação encontrada</td></tr>');
+                tbody.append('<tr><td colspan="8" class="text-center py-4 text-muted">Nenhuma entrada encontrada</td></tr>');
                 return;
             }
 
-            dados.forEach(mov => {
-                const dataFormatada = formatarData(mov.data?.toDate() || new Date(mov.criadoEm));
-                const origemDestino = mov.tipo === 'entrada' ? 
-                    `<span class="text-success"><i class="fas fa-arrow-down me-1"></i> ${mov.origem || '-'}</span>` : 
-                    `<span class="text-danger"><i class="fas fa-arrow-up me-1"></i> ${mov.destino || '-'}</span>`;
-                
-                // Status do prazo
-                const statusPrazo = verificarStatusPrazo(mov);
-                let prazoBadge = '';
-                if (mov.prazoDias) {
-                    const diasDecorridos = Math.floor((new Date() - (mov.data?.toDate() || new Date(mov.criadoEm))) / (1000 * 60 * 60 * 24));
-                    
-                    if (statusPrazo === 'atrasado') {
-                        prazoBadge = `<span class="badge badge-danger">Atrasado (${diasDecorridos}/${mov.prazoDias} dias)</span>`;
-                    } else if (statusPrazo === 'proximo') {
-                        prazoBadge = `<span class="badge badge-warning">Próximo (${diasDecorridos}/${mov.prazoDias} dias)</span>`;
-                    } else {
-                        prazoBadge = `<span class="badge badge-entrada">No prazo (${diasDecorridos}/${mov.prazoDias} dias)</span>`;
-                    }
-                } else {
-                    prazoBadge = '<span class="text-muted">Sem prazo</span>';
-                }
-                
-                // Adiciona classe de alerta se necessário
-                const rowClass = statusPrazo === 'proximo' ? 'prazo-proximo' : 
-                                statusPrazo === 'atrasado' ? 'prazo-atrasado' : '';
+            dados.forEach(entrada => {
+                const dataFormatada = formatarData(entrada.data?.toDate() || new Date(entrada.criadoEm));
+                const prazoInfo = entrada.prazoDias ? 
+                    `<span class="badge badge-primary">${entrada.prazoDias} dias</span>` : 
+                    '<span class="text-muted">Sem prazo</span>';
                 
                 tbody.append(`
-                    <tr class="${rowClass}">
-                        <td><span class="badge ${mov.tipo === 'entrada' ? 'badge-entrada' : 'badge-saida'}">${mov.tipo === 'entrada' ? 'Entrada' : 'Saída'}</span></td>
+                    <tr>
                         <td>${dataFormatada}</td>
-                        <td>${mov.material}</td>
-                        <td>${mov.quantidade}</td>
-                        <td>${mov.responsavel}</td>
-                        <td>${mov.notaFiscal || '-'}</td>
-                        <td>${origemDestino}</td>
-                        <td>${prazoBadge}</td>
+                        <td>${entrada.material}</td>
+                        <td>${entrada.quantidade}</td>
+                        <td>${entrada.responsavel}</td>
+                        <td>${entrada.notaFiscal || '-'}</td>
+                        <td>${entrada.destino}</td>
+                        <td>${prazoInfo}</td>
                         <td class="action-buttons">
-                            <button class="btn btn-sm btn-info" onclick="verFotosCompletas('${mov.id}')" title="Ver Fotos" data-bs-toggle="tooltip">
+                            <button class="btn btn-sm btn-info" onclick="verFotosCompletas('${entrada.id}')" title="Ver Fotos" data-bs-toggle="tooltip">
                                 <i class="fas fa-images"></i>
                             </button>
-                            <button class="btn btn-sm btn-warning" onclick="gerarComprovante('${mov.id}')" title="Comprovante Motorista" data-bs-toggle="tooltip">
-                                <i class="fas fa-truck"></i>
-                            </button>
-                            <button class="btn btn-sm btn-danger" onclick="prepararExclusao('${mov.id}')" title="Excluir" data-bs-toggle="tooltip">
-                                <i class="fas fa-trash"></i>
-                            </button>
                         </td>
                     </tr>
                 `);
             });
 
-            // Inicializar tooltips
-            $('[data-bs-toggle="tooltip"]').tooltip();
-        }
-
-        // Função para exibir resultados de estoque na tabela
-        function exibirResultadosEstoque(dados) {
-            const tbody = $('#estoqueTableBody');
-            tbody.empty();
-
-            if (dados.length === 0) {
-                tbody.append('<tr><td colspan="7" class="text-center py-4 text-muted">Nenhum material encontrado</td></tr>');
-                return;
-            }
-
-            dados.forEach(mat => {
-                // Status do prazo
-                let statusBadge = '';
-                if (mat.prazoDias) {
-                    if (mat.status === 'atrasado') {
-                        statusBadge = `<span class="badge badge-danger">Atrasado (${mat.diasNoGalpao}/${mat.prazoDias} dias)</span>`;
-                    } else if (mat.status === 'proximo') {
-                        statusBadge = `<span class="badge badge-warning">Próximo (${mat.diasNoGalpao}/${mat.prazoDias} dias)</span>`;
-                    } else {
-                        statusBadge = `<span class="badge badge-entrada">No prazo (${mat.diasNoGalpao}/${mat.prazoDias} dias)</span>`;
-                    }
-                } else {
-                    statusBadge = '<span class="text-muted">Sem prazo</span>';
-                }
-                
-                // Adiciona classe de alerta se necessário
-                const rowClass = mat.status === 'proximo' ? 'prazo-proximo' : 
-                                mat.status === 'atrasado' ? 'prazo-atrasado' : 
-                                mat.status === 'no-prazo' ? 'no-prazo' : '';
-                
-                // Formata data da última movimentação
-                const ultimaMovFormatada = mat.ultimaMovimentacao ? 
-                    formatarData(mat.ultimaMovimentacao.data) : 'N/A';
-                
-                tbody.append(`
-                    <tr class="${rowClass}">
-                        <td>${mat.nome}</td>
-                        <td>${mat.quantidade}</td>
-                        <td>${mat.diasNoGalpao}</td>
-                        <td>${mat.prazoDias || '-'}</td>
-                        <td>${statusBadge}</td>
-                        <td>${ultimaMovFormatada}</td>
-                        <td class="action-buttons">
-                            <button class="btn btn-sm btn-primary" onclick="verDetalhesMaterial('${mat.nome}')" title="Detalhes" data-bs-toggle="tooltip">
-                                <i class="fas fa-info-circle"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `);
-            });
-
-            // Inicializar tooltips
             $('[data-bs-toggle="tooltip"]').tooltip();
         }
 
         // Atualiza tabela de estoque
         function atualizarTabelaEstoque() {
-            const resultados = Object.keys(estoque)
-                .map(nomeMaterial => {
-                    const materialInfo = estoque[nomeMaterial];
-                    const diasNoGalpao = calcularDiasNoGalpao(materialInfo);
-                    const status = verificarStatusPrazoMaterial(materialInfo, diasNoGalpao);
-                    
-                    return {
-                        nome: nomeMaterial,
-                        quantidade: materialInfo.quantidade,
-                        diasNoGalpao: diasNoGalpao,
-                        prazoDias: materialInfo.prazoDias,
-                        status: status,
-                        ultimaMovimentacao: materialInfo.ultimaMovimentacao
-                    };
-                });
+            const tbody = $('#estoqueTableBody');
+            tbody.empty();
 
-            exibirResultadosEstoque(resultados);
+            if (Object.keys(estoque).length === 0) {
+                tbody.append('<tr><td colspan="4" class="text-center py-4 text-muted">Nenhum material em estoque</td></tr>');
+                return;
+            }
+
+            Object.keys(estoque).forEach(material => {
+                const info = estoque[material];
+                const ultimaEntrada = info.ultimaEntrada ? 
+                    formatarData(info.ultimaEntrada.data) : 'N/A';
+                
+                tbody.append(`
+                    <tr>
+                        <td>${material}</td>
+                        <td>${info.quantidade}</td>
+                        <td>${ultimaEntrada}</td>
+                        <td>${info.destino}</td>
+                    </tr>
+                `);
+            });
         }
 
         // Função para formatar data
@@ -1260,7 +811,7 @@
         function showLoading(show) {
             const tbody = $('#materialTableBody');
             if (show) {
-                tbody.html('<tr><td colspan="9" class="text-center py-4"><div class="loading-spinner text-primary"></div> <span class="ms-2">Carregando...</span></td></tr>');
+                tbody.html('<tr><td colspan="8" class="text-center py-4"><div class="loading-spinner text-primary"></div> <span class="ms-2">Carregando...</span></td></tr>');
             }
         }
 
@@ -1277,160 +828,61 @@
             }
         }
 
-        // Função para gerar comprovante para o motorista
-        window.gerarComprovante = async function(id) {
-            try {
-                showLoading(true);
-                const doc = await db.collection('movimentacoes').doc(id).get();
-                if (!doc.exists) return;
-
-                const data = doc.data();
-                const dataFormatada = formatarData(data.data?.toDate() || new Date(data.criadoEm));
-                const hoje = new Date();
-                const dataHoje = hoje.toLocaleDateString('pt-BR');
-                const horaHoje = hoje.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
-                
-                // Cria o conteúdo do comprovante
-                let comprovanteHTML = `
-                    <div class="text-center mb-3">
-                        <h4>COMPROVANTE DE ${data.tipo === 'entrada' ? 'RECEBIMENTO' : 'ENTREGA'}</h4>
-                        <hr>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <h5>Informações da Movimentação</h5>
-                        <p><strong>Data/Hora:</strong> ${dataFormatada}</p>
-                        <p><strong>Material:</strong> ${data.material}</p>
-                        <p><strong>Quantidade:</strong> ${data.quantidade}</p>
-                        <p><strong>Responsável pelo registro:</strong> ${data.responsavel}</p>
-                        ${data.notaFiscal ? `<p><strong>Nota Fiscal:</strong> ${data.notaFiscal}</p>` : ''}
-                        <p><strong>${data.tipo === 'entrada' ? 'Origem' : 'Destino'}:</strong> ${data.tipo === 'entrada' ? data.origem || '-' : data.destino || '-'}</p>
-                        ${data.prazoDias ? `<p><strong>Prazo:</strong> ${data.prazoDias} dias</p>` : ''}
-                        ${data.observacao ? `<p><strong>Observação:</strong> ${data.observacao}</p>` : ''}
-                    </div>
-                    
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <h5>Foto da Nota Fiscal</h5>
-                            ${data.fotoNotaUrl ? `<img src="${data.fotoNotaUrl}" class="img-thumbnail" style="max-height: 150px;">` : '<p class="text-muted">Nenhuma foto disponível</p>'}
-                        </div>
-                        <div class="col-md-6">
-                            <h5>Foto do Material</h5>
-                            ${data.fotoMaterialUrl ? `<img src="${data.fotoMaterialUrl}" class="img-thumbnail" style="max-height: 150px;">` : '<p class="text-muted">Nenhuma foto disponível</p>'}
-                        </div>
-                    </div>
-                    
-                    <div class="row mt-4 pt-3 border-top">
-                        <div class="col-md-6">
-                            <h5 class="text-center">Motorista</h5>
-                            <div class="text-center mt-3">
-                                <div class="mb-2">
-                                    <label class="form-label d-block">RG:</label>
-                                    <input type="text" class="form-control form-control-sm d-inline-block w-75" id="rgMotorista" placeholder="Digite o RG do motorista">
-                                </div>
-                                <p class="mt-3">_________________________________</p>
-                                <p class="mb-1">Assinatura</p>
-                                <p class="text-muted small">Data: ${dataHoje} Hora: ${horaHoje}</p>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <h5 class="text-center">Recebedor</h5>
-                            <div class="text-center mt-3">
-                                <div class="mb-2">
-                                    <label class="form-label d-block">RG:</label>
-                                    <input type="text" class="form-control form-control-sm d-inline-block w-75" id="rgRecebedor" placeholder="Digite o RG do recebedor">
-                                </div>
-                                <p class="mt-3">_________________________________</p>
-                                <p class="mb-1">Assinatura</p>
-                                <p class="text-muted small">Data: ${dataHoje} Hora: ${horaHoje}</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="mt-3 text-muted small">
-                        <p class="text-center">Este documento comprova a ${data.tipo === 'entrada' ? 'entrada' : 'saída'} do material descrito acima.</p>
-                    </div>
-                `;
-                
-                $('#comprovanteMotoristaContent').html(comprovanteHTML);
-                
-                // Configura os botões
-                $('#imprimirComprovanteBtn').off('click').click(function() {
-                    // Captura os RGs digitados
-                    const rgMotorista = $('#rgMotorista').val();
-                    const rgRecebedor = $('#rgRecebedor').val();
-                    
-                    // Adiciona os RGs ao conteúdo antes de imprimir
-                    let printContent = document.getElementById('comprovanteMotoristaContent').innerHTML;
-                    printContent = printContent.replace(
-                        'id="rgMotorista"', 
-                        `id="rgMotorista" disabled value="${rgMotorista || 'Não informado'}"`
-                    );
-                    printContent = printContent.replace(
-                        'id="rgRecebedor"', 
-                        `id="rgRecebedor" disabled value="${rgRecebedor || 'Não informado'}"`
-                    );
-                    
-                    const originalContent = document.body.innerHTML;
-                    document.body.innerHTML = printContent;
-                    window.print();
-                    document.body.innerHTML = originalContent;
-                    
-                    window.location.reload();
-                });
-                
-                $('#salvarFotosBtn').off('click').click(async function() {
-                    try {
-                        $(this).html('<span class="loading-spinner"></span> Salvando...').prop('disabled', true);
-                        
-                        if (data.fotoNotaUrl) {
-                            await salvarFotoNoDispositivo(data.fotoNotaUrl, `nota_fiscal_${id}.jpg`);
-                        }
-                        
-                        if (data.fotoMaterialUrl) {
-                            await salvarFotoNoDispositivo(data.fotoMaterialUrl, `material_${id}.jpg`);
-                        }
-                        
-                        showToast('Sucesso', 'Fotos salvas com sucesso na galeria do dispositivo', 'success');
-                    } catch (error) {
-                        showToast('Erro', 'Não foi possível salvar as fotos: ' + error.message, 'danger');
-                    } finally {
-                        $(this).html('<i class="fas fa-download me-1"></i> Salvar Fotos').prop('disabled', false);
-                    }
-                });
-                
-                new bootstrap.Modal(document.getElementById('comprovanteMotoristaModal')).show();
-            } catch (error) {
-                showToast('Erro', 'Não foi possível gerar o comprovante', 'danger');
-            } finally {
-                showLoading(false);
-            }
-        };
-
         // Função para salvar fotos no dispositivo
-        async function salvarFotoNoDispositivo(url, filename) {
+        async function salvarFotoNoDispositivo(file, filename) {
             try {
-                // Em ambiente mobile, podemos usar o FileSystem API ou criar um link de download
+                if (!file) return;
+                
+                const imageUrl = URL.createObjectURL(file);
                 const link = document.createElement('a');
-                link.href = url;
+                link.href = imageUrl;
                 link.download = filename;
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
+                URL.revokeObjectURL(imageUrl);
                 
-                // Para dispositivos iOS/Android, pode ser necessário usar plugins como Cordova File Plugin
-                // Esta é uma solução simples que funciona na maioria dos navegadores modernos
+                console.log('Foto salva:', filename);
             } catch (error) {
-                console.error("Erro ao salvar foto:", error);
-                throw error;
+                console.error('Erro ao salvar foto:', error);
             }
         }
 
-        // Funções globais para acesso nos botões
+        // Função para salvar fotos do modal
+        window.salvarFotosDoModal = function() {
+            try {
+                const notaUrl = $('#modalFotoNota').attr('src');
+                const materialUrl = $('#modalFotoMaterial').attr('src');
+                
+                if (notaUrl) {
+                    const link = document.createElement('a');
+                    link.href = notaUrl;
+                    link.download = 'nota_fiscal_' + new Date().getTime() + '.jpg';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+                
+                if (materialUrl) {
+                    const link = document.createElement('a');
+                    link.href = materialUrl;
+                    link.download = 'material_' + new Date().getTime() + '.jpg';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+                
+                showToast('Sucesso', 'Fotos salvas com sucesso na galeria do dispositivo', 'success');
+            } catch (error) {
+                showToast('Erro', 'Não foi possível salvar as fotos: ' + error.message, 'danger');
+            }
+        };
+
+        // Função para ver fotos completas
         window.verFotosCompletas = async function(id) {
             try {
                 showLoading(true);
-                const doc = await db.collection('movimentacoes').doc(id).get();
+                const doc = await db.collection('entradas').doc(id).get();
                 if (!doc.exists) return;
 
                 const data = doc.data();
@@ -1463,118 +915,6 @@
                 showLoading(false);
             }
         };
-
-        window.prepararExclusao = async function(id) {
-            try {
-                showLoading(true);
-                const doc = await db.collection('movimentacoes').doc(id).get();
-                if (!doc.exists) return;
-
-                movimentacaoAtual = {
-                    id: doc.id,
-                    ...doc.data()
-                };
-
-                $('#senhaAdmin').val('');
-                new bootstrap.Modal(document.getElementById('confirmarExclusaoModal')).show();
-            } catch (error) {
-                showToast('Erro', 'Falha ao preparar exclusão', 'danger');
-            } finally {
-                showLoading(false);
-            }
-        };
-
-        window.verDetalhesMaterial = function(nomeMaterial) {
-            if (!estoque[nomeMaterial]) return;
-            
-            const materialInfo = estoque[nomeMaterial];
-            const diasNoGalpao = calcularDiasNoGalpao(materialInfo);
-            const status = verificarStatusPrazoMaterial(materialInfo, diasNoGalpao);
-            
-            // Atualiza informações básicas
-            $('#detalheMaterialNome').text(nomeMaterial);
-            $('#detalheMaterialQuantidade').text(materialInfo.quantidade);
-            $('#detalheMaterialDias').text(diasNoGalpao);
-            
-            // Atualiza status
-            let statusText = '';
-            if (materialInfo.prazoDias) {
-                if (status === 'atrasado') {
-                    statusText = `<span class="badge badge-danger">Atrasado (${diasNoGalpao}/${materialInfo.prazoDias} dias)</span>`;
-                } else if (status === 'proximo') {
-                    statusText = `<span class="badge badge-warning">Próximo do prazo (${diasNoGalpao}/${materialInfo.prazoDias} dias)</span>`;
-                } else {
-                    statusText = `<span class="badge badge-entrada">No prazo (${diasNoGalpao}/${materialInfo.prazoDias} dias)</span>`;
-                }
-            } else {
-                statusText = '<span class="text-muted">Sem prazo definido</span>';
-            }
-            $('#detalheMaterialStatus').html(statusText);
-            
-            // Preenche histórico
-            const historicoBody = $('#detalhesMaterialHistorico');
-            historicoBody.empty();
-            
-            // Ordena movimentações por data (mais recente primeiro)
-            const movimentacoesOrdenadas = [...materialInfo.movimentacoes].sort((a, b) => {
-                const dataA = a.data?.toDate() || new Date(a.criadoEm);
-                const dataB = b.data?.toDate() || new Date(b.criadoEm);
-                return dataB - dataA;
-            });
-            
-            movimentacoesOrdenadas.forEach(mov => {
-                const dataFormatada = formatarData(mov.data?.toDate() || new Date(mov.criadoEm));
-                const tipo = mov.tipo === 'entrada' ? 
-                    `<span class="badge badge-entrada">Entrada</span>` : 
-                    `<span class="badge badge-saida">Saída</span>`;
-                
-                const origemDestino = mov.tipo === 'entrada' ? 
-                    `<span class="text-success">${mov.origem || '-'}</span>` : 
-                    `<span class="text-danger">${mov.destino || '-'}</span>`;
-                
-                // Status do prazo para esta movimentação
-                let prazoStatus = '';
-                if (mov.prazoDias) {
-                    const statusMov = verificarStatusPrazo(mov);
-                    const diasDecorridos = Math.floor((new Date() - (mov.data?.toDate() || new Date(mov.criadoEm))) / (1000 * 60 * 60 * 24));
-                    
-                    if (statusMov === 'atrasado') {
-                        prazoStatus = `<span class="badge badge-danger">Atrasado</span>`;
-                    } else if (statusMov === 'proximo') {
-                        prazoStatus = `<span class="badge badge-warning">Próximo</span>`;
-                    } else {
-                        prazoStatus = `<span class="badge badge-entrada">No prazo</span>`;
-                    }
-                    
-                    prazoStatus += ` (${diasDecorridos}/${mov.prazoDias} dias)`;
-                } else {
-                    prazoStatus = '-';
-                }
-                
-                historicoBody.append(`
-                    <tr>
-                        <td>${dataFormatada}</td>
-                        <td>${tipo}</td>
-                        <td>${mov.quantidade}</td>
-                        <td>${mov.responsavel}</td>
-                        <td>${origemDestino}</td>
-                        <td>${mov.prazoDias || '-'}</td>
-                        <td>${prazoStatus}</td>
-                    </tr>
-                `);
-            });
-            
-            // Mostra o modal
-            new bootstrap.Modal(document.getElementById('detalhesMaterialModal')).show();
-        };
-
-        // Debug inicial
-        console.log("Aplicação iniciada");
-        if (!firebase.apps.length) {
-            console.error("Firebase não foi inicializado corretamente");
-        } else {
-            console.log("Firebase inicializado com sucesso");
-        }
     </script>
 </body>
 </html>
