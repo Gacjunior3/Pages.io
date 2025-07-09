@@ -7,36 +7,74 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.4;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 15px;
+        @media screen {
+            body {
+                font-family: Arial, sans-serif;
+                background-color: black;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+                margin: 0;
+                padding: 20px;
+            }
+            
+            .form-container {
+                background-color: white;
+                border-radius: 5px;
+                box-shadow: 0 0 20px rgba(255,255,255,0.3);
+                width: 100%;
+                max-width: 800px;
+                padding: 25px;
+                box-sizing: border-box;
+            }
         }
         
-        .form-container {
-            border: 1px solid #ddd;
-            padding: 20px;
-            border-radius: 3px;
+        @media print {
+            body {
+                background: white !important;
+                padding: 0;
+                margin: 0;
+            }
+            
+            .form-container {
+                border: none;
+                box-shadow: none;
+                padding: 0;
+                width: 100%;
+                height: 100%;
+                page-break-after: avoid;
+                page-break-inside: avoid;
+            }
         }
         
         h1 {
             text-align: center;
             font-size: 18px;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #000;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #000;
             padding-bottom: 5px;
+            color: #000;
+        }
+        
+        h3 {
+            font-size: 14px;
+            margin: 12px 0 8px;
+            color: #000;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 3px;
         }
         
         .form-group {
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
         
         label {
             display: block;
-            font-size: 13px;
+            font-size: 12px;
             margin-bottom: 3px;
+            font-weight: bold;
+            color: #000;
         }
         
         input, select, textarea {
@@ -45,17 +83,19 @@
             border: 1px solid #ccc;
             border-radius: 3px;
             box-sizing: border-box;
-            font-size: 13px;
+            font-size: 12px;
+            background-color: #fff;
         }
         
         textarea {
-            height: 60px;
+            height: 50px;
             resize: none;
         }
         
         .form-row {
             display: flex;
-            gap: 10px;
+            gap: 8px;
+            margin-bottom: 5px;
         }
         
         .form-row .form-group {
@@ -63,7 +103,7 @@
         }
         
         .signature-area {
-            margin-top: 30px;
+            margin-top: 20px;
             display: flex;
             justify-content: space-between;
         }
@@ -75,47 +115,44 @@
         
         .signature-line {
             border-top: 1px solid #000;
-            margin: 40px 0 5px;
+            margin: 30px 0 5px;
         }
         
         .no-print {
             text-align: center;
-            margin-top: 20px;
+            margin-top: 15px;
         }
         
         button {
             padding: 8px 20px;
-            background: #333;
+            background: #000;
             color: white;
             border: none;
             border-radius: 3px;
             cursor: pointer;
+            font-size: 13px;
         }
         
-        @media print {
-            body {
-                padding: 0;
-                background: white;
-            }
-            
-            .no-print {
-                display: none;
-            }
-            
-            .form-container {
-                border: none;
-                padding: 0;
-            }
-            
-            input[type="number"] {
-                -moz-appearance: textfield;
-            }
-            
-            input[type="number"]::-webkit-outer-spin-button,
-            input[type="number"]::-webkit-inner-spin-button {
-                -webkit-appearance: none;
-                margin: 0;
-            }
+        .required-field::after {
+            content: " *";
+            color: red;
+        }
+        
+        #placa {
+            text-transform: uppercase;
+            font-family: monospace;
+            letter-spacing: 1px;
+        }
+        
+        /* Garante que tudo caiba em uma página A4 */
+        @page {
+            size: A4;
+            margin: 0;
+        }
+        
+        .form-container {
+            height: 280mm; /* Altura aproximada de uma A4 */
+            overflow: hidden;
         }
     </style>
 </head>
@@ -126,15 +163,15 @@
         <form id="main-form">
             <div class="form-row">
                 <div class="form-group" style="flex: 2;">
-                    <label for="cliente_nome">Cliente:</label>
+                    <label for="cliente_nome" class="required-field">Cliente:</label>
                     <input type="text" id="cliente_nome" name="cliente_nome" required>
                 </div>
                 <div class="form-group">
-                    <label for="data">Data:</label>
+                    <label for="data" class="required-field">Data:</label>
                     <input type="date" id="data" name="data" required>
                 </div>
                 <div class="form-group">
-                    <label for="tipo_operacao">Operação:</label>
+                    <label for="tipo_operacao" class="required-field">Operação:</label>
                     <select id="tipo_operacao" name="tipo_operacao" required>
                         <option value="">Selecione</option>
                         <option value="retirada">Retirada</option>
@@ -145,15 +182,15 @@
             
             <div class="form-row">
                 <div class="form-group">
-                    <label for="document_number">Nº Documento:</label>
+                    <label for="document_number" class="required-field">Nº Documento:</label>
                     <input type="text" id="document_number" name="document_number" required readonly>
                 </div>
                 <div class="form-group">
-                    <label for="nota">Nota Fiscal:</label>
+                    <label for="nota" class="required-field">Nota Fiscal:</label>
                     <input type="text" id="nota" name="nota" required>
                 </div>
                 <div class="form-group">
-                    <label for="consultor">Consultor:</label>
+                    <label for="consultor" class="required-field">Consultor:</label>
                     <input type="text" id="consultor" name="consultor" required>
                 </div>
             </div>
@@ -161,11 +198,11 @@
             <h3>Dados do Veículo</h3>
             <div class="form-row">
                 <div class="form-group">
-                    <label for="placa">Placa:</label>
-                    <input type="text" id="placa" name="placa" required placeholder="AAA00000">
+                    <label for="placa" class="required-field">Placa:</label>
+                    <input type="text" id="placa" name="placa" required placeholder="AAA0A00 ou AAA0000" maxlength="7" pattern="[A-Z]{3}[0-9][A-Z0-9][0-9]{2}">
                 </div>
                 <div class="form-group">
-                    <label for="modelo">Modelo:</label>
+                    <label for="modelo" class="required-field">Modelo:</label>
                     <select id="modelo" name="modelo" required>
                         <option value="">Selecione</option>
                         <option value="Toco">Toco</option>
@@ -187,22 +224,22 @@
             <h3>Dados do Motorista</h3>
             <div class="form-row">
                 <div class="form-group" style="flex: 2;">
-                    <label for="motorista_nome">Nome:</label>
+                    <label for="motorista_nome" class="required-field">Nome:</label>
                     <input type="text" id="motorista_nome" name="motorista_nome" required>
                 </div>
                 <div class="form-group">
-                    <label for="motorista_cpf">CPF:</label>
+                    <label for="motorista_cpf" class="required-field">CPF:</label>
                     <input type="text" id="motorista_cpf" name="motorista_cpf" required placeholder="000.000.000-00">
                 </div>
             </div>
             
             <div class="form-row">
                 <div class="form-group">
-                    <label for="motorista_rg">RG:</label>
+                    <label for="motorista_rg" class="required-field">RG:</label>
                     <input type="text" id="motorista_rg" name="motorista_rg" required>
                 </div>
                 <div class="form-group">
-                    <label for="motorista_cnh">CNH:</label>
+                    <label for="motorista_cnh" class="required-field">CNH:</label>
                     <input type="text" id="motorista_cnh" name="motorista_cnh" required>
                 </div>
             </div>
@@ -210,7 +247,7 @@
             <h3>Dados da Carga</h3>
             <div class="form-row">
                 <div class="form-group">
-                    <label for="tipo_material">Tipo Material:</label>
+                    <label for="tipo_material" class="required-field">Tipo Material:</label>
                     <select id="tipo_material" name="tipo_material" required>
                         <option value="">Selecione</option>
                         <option value="pecas">Peças</option>
@@ -220,7 +257,7 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="quantidade">Quantidade:</label>
+                    <label for="quantidade" class="required-field">Quantidade:</label>
                     <input type="number" id="quantidade" name="quantidade" required min="1">
                 </div>
             </div>
@@ -228,7 +265,7 @@
             <h3>Destino</h3>
             <div class="form-row">
                 <div class="form-group">
-                    <label for="estado">Estado:</label>
+                    <label for="estado" class="required-field">Estado:</label>
                     <select id="estado" name="estado" required onchange="carregarCidades()">
                         <option value="">Selecione</option>
                         <option value="AC">AC</option>
@@ -261,7 +298,7 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="cidade">Cidade:</label>
+                    <label for="cidade" class="required-field">Cidade:</label>
                     <select id="cidade" name="cidade" required disabled>
                         <option value="">Selecione estado</option>
                     </select>
@@ -269,7 +306,7 @@
             </div>
             
             <div class="form-group">
-                <label for="endereco">Endereço Completo:</label>
+                <label for="endereco" class="required-field">Endereço Completo:</label>
                 <textarea id="endereco" name="endereco" required placeholder="Rua, número, bairro"></textarea>
             </div>
             
@@ -315,11 +352,32 @@
                 e.target.value = value.substring(0, 14);
             });
             
-            // Máscara para placa do veículo
+            // Máscara para placa do veículo (aceita padrão novo e antigo)
             document.getElementById('placa').addEventListener('input', function(e) {
                 let value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-                if (value.length > 3) value = value.substring(0, 3) + '-' + value.substring(3);
-                e.target.value = value.substring(0, 7);
+                
+                // Padrão novo: AAA0A00
+                if (/^[A-Z]{3}\d[A-Z]\d{2}$/.test(value)) {
+                    if (value.length > 3) value = value.substring(0, 3) + value.substring(3, 4) + 
+                                                (value.length > 4 ? value.substring(4, 5) : '') + 
+                                                (value.length > 5 ? value.substring(5, 7) : '');
+                    e.target.value = value.substring(0, 7);
+                } 
+                // Padrão antigo: AAA0000
+                else {
+                    if (value.length > 3) value = value.substring(0, 3) + value.substring(3);
+                    e.target.value = value.substring(0, 7);
+                }
+            });
+            
+            // Validação da placa ao sair do campo
+            document.getElementById('placa').addEventListener('blur', function(e) {
+                const value = e.target.value.replace(/-/g, '');
+                // Verifica se é placa no padrão novo (AAA0A00) ou antigo (AAA0000)
+                if (!/^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/.test(value) || value.length !== 7) {
+                    alert('Placa inválida! Formato correto: AAA0A00 (novo) ou AAA0000 (antigo)');
+                    e.target.focus();
+                }
             });
             
             // Monitorar tipo de operação para cidade
@@ -420,6 +478,12 @@
         }
 
         function saveAndPrint() {
+            // Validação do formulário antes de salvar
+            if (!document.getElementById('main-form').checkValidity()) {
+                alert('Por favor, preencha todos os campos obrigatórios corretamente antes de imprimir.');
+                return;
+            }
+            
             // Primeiro salva como PDF
             saveAsPDF();
             
